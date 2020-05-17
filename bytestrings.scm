@@ -8,7 +8,10 @@
         (else ; TODO: error type
          (error (string-append error-location ": invalid argument") x))))
 
+;;; Constructor
+
 ;; TODO: Error handling and algorithmic improvement.
+
 (define (bytestring . args)
   (let lp ((bs (bytevector)) (args args))
     (if (null? args)
@@ -16,22 +19,7 @@
         (lp (bytevector-append bs (convert-argument (car args) "bytestring"))
             (cdr args)))))
 
-(define (list->bytestring lis)
-  (fold-right (lambda (x bs)
-                (bytevector-append (convert-argument x "list->bytestring") bs))
-              (bytevector)
-              lis))
-
-;; FIXME: Are exact integers the Right Thing here?  Anything which is
-;; a valid argument to bytestring is allowed as an element of the list
-;; we return.
-;;
-;; This is just bytevector-u8-ref from (scheme bytevector).  TODO: Use
-;; a cond-expand.
-(define (bytestring->list bytestring)
-  (assume (bytevector? bytestring))
-  (list-tabulate (bytevector-length bytestring)
-                 (lambda (i) (bytevector-u8-ref bytestring i))))
+;;; Conversion
 
 (define (bytevector-fold-right kons knil bvec)
   (let ((len (bytevector-length bvec)))
@@ -45,10 +33,49 @@
   (let ((s (number->string n 16)))
     (if (even? (string-length s)) s (string-append "0" s))))
 
-(define (bytevector->hex-string bytestring)
-  (assume (bytevector? bytestring))
-  (let ((len (bytevector-length bytestring)))
+(define (bytevector->hex-string bstring)
+  (assume (bytevector? bstring))
+  (let ((len (bytevector-length bstring)))
     (bytevector-fold-right (lambda (b s)
                              (string-append (integer->hex-string b) s))
                            (string)
-                           bytestring)))
+                           bstring)))
+
+(define (list->bytestring lis)
+  (fold-right (lambda (x bs)
+                (bytevector-append (convert-argument x "list->bytestring") bs))
+              (bytevector)
+              lis))
+
+;; FIXME: Are exact integers the Right Thing here?  Anything which is
+;; a valid argument to bytestring is allowed as an element of the list
+;; we return.
+;;
+;; This is just bytevector-u8-ref from (scheme bytevector).  TODO: Use
+;; a cond-expand.
+(define (bytestring->list bstring)
+  (assume (bytevector? bstring))
+  (list-tabulate (bytevector-length bstring)
+                 (lambda (i) (bytevector-u8-ref bstring i))))
+
+;;; Selection
+
+(define (bytestring-pad bstring len char-or-u8)
+  (assume (bytevector? bstring))  ; TODO: better type checks
+  (assume (integer? len))
+  (assume (or (char? char-or-u8) (integer? char-or-u8)))
+  (let ((old-len (bytevector-length bstring)))
+    (if (>= old-len len)
+        bstring
+        (bytevector-append (make-bytevector (- len old-len) char-or-u8)
+                           bstring))))
+
+(define (bytestring-pad-right bstring len char-or-u8)
+  (assume (bytevector? bstring))  ; TODO: better type checks
+  (assume (integer? len))
+  (assume (or (char? char-or-u8) (integer? char-or-u8)))
+  (let ((old-len (bytevector-length bstring)))
+    (if (>= old-len len)
+        bstring
+        (bytevector-append bstring
+                           (make-bytevector (- len old-len) char-or-u8)))))

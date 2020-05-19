@@ -61,16 +61,16 @@
               (bytevector)
               lis))
 
-;; FIXME: Are exact integers the Right Thing here?  Anything which is
-;; a valid argument to bytestring is allowed as an element of the list
-;; we return.
-;;
-;; This is just bytevector-u8-ref from (scheme bytevector).  TODO: Use
-;; a cond-expand.
-(define (bytestring->list bstring)
-  (assume (bytevector? bstring))
-  (list-tabulate (bytevector-length bstring)
-                 (lambda (i) (bytevector-u8-ref bstring i))))
+;; Returns a list of the exact integers comprising bstring.
+(cond-expand
+  ((library (scheme bytevector))
+   (define (bytestring->list bstring)
+     (bytevector->u8-list bstring)))
+  (else
+   (define (bytestring->list bstring)
+     (assume (bytevector? bstring))
+     (list-tabulate (bytevector-length bstring)
+                    (lambda (i) (bytevector-u8-ref bstring i))))))
 
 ;;; Selection
 

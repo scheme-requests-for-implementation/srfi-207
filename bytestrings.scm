@@ -1,5 +1,8 @@
 ;;; Utility
 
+(define (exact-natural? x)
+  (and (exact? x) (integer? x) (not (negative? x))))
+
 (define (bytevector-index bvec pred)
   (let ((len (bytevector-length bvec)))
     (let lp ((i 0))
@@ -111,3 +114,25 @@
     (bytevector-copy bstring
                      (or new-start 0)
                      (or new-end (bytevector-length bstring)))))
+
+;;; Replacement
+
+(define bytestring-replace
+  (case-lambda
+    ((bstring1 bstring2 start end)
+     (bytestring-replace bstring1 bstring2 start end start end))
+    ((bstring1 bstring2 start1 end1 start2 end2)
+     (assume (bytevector? bstring1))  ; TODO: clean up this mess
+     (assume (bytevector? bstring2))
+     (assume (exact-natural? start1))
+     (assume (exact-natural? end1))
+     (assume (exact-natural? start2))
+     (assume (exact-natural? end2))
+     (let* ((b1-len (bytevector-length bstring1))
+            (sub-len (- end2 start2))
+            (new-len (+ sub-len (- b1-len (- end1 start1))))
+            (bs-new (make-bytevector new-len)))
+       (bytevector-copy! bs-new 0 bstring1 0 start1)
+       (bytevector-copy! bs-new start1 bstring2 start2 end2)
+       (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
+       bs-new))))

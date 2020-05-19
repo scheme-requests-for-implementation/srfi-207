@@ -3,19 +3,6 @@
 (define (exact-natural? x)
   (and (exact? x) (integer? x) (not (negative? x))))
 
-(define (bytevector-index bvec pred)
-  (let ((len (bytevector-length bvec)))
-    (let lp ((i 0))
-      (cond ((= i len) #f)
-            ((pred (bytevector-u8-ref bvec i)) i)
-            (else (lp (+ i 1)))))))
-
-(define (bytevector-index-right bvec pred)
-  (let lp ((i (- (bytevector-length bvec) 1)))
-    (cond ((< i 0) #f)
-          ((pred (bytevector-u8-ref bvec i)) i)
-          (else (lp (- i 1))))))
-
 (define (convert-argument x error-location)
   (cond ((and (integer? x) (<= 0 x) (<= x 255))
          (bytevector x))
@@ -95,17 +82,17 @@
                            (make-bytevector (- len old-len) char-or-u8)))))
 
 (define (bytestring-trim bstring pred)
-  (let ((new-start (bytevector-index bstring (lambda (b) (not (pred b))))))
+  (let ((new-start (bytestring-index bstring (lambda (b) (not (pred b))))))
     (if new-start (bytevector-copy bstring new-start) (bytevector))))
 
 (define (bytestring-trim-right bstring pred)
-  (let ((new-end (+ 1 (bytevector-index-right bstring
+  (let ((new-end (+ 1 (bytestring-index-right bstring
                                               (lambda (b) (not (pred b)))))))
     (if new-end (bytevector-copy bstring 0 new-end) (bytevector))))
 
 (define (bytestring-trim-both bstring pred)
-  (let ((new-start (bytevector-index bstring (lambda (b) (not (pred b)))))
-        (new-end (+ 1 (bytevector-index-right bstring
+  (let ((new-start (bytestring-index bstring (lambda (b) (not (pred b)))))
+        (new-end (+ 1 (bytestring-index-right bstring
                                               (lambda (b) (not (pred b)))))))
     (bytevector-copy bstring
                      (or new-start 0)
@@ -132,3 +119,27 @@
        (bytevector-copy! bs-new start1 bstring2 start2 end2)
        (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
        bs-new))))
+
+;;; Searching
+
+(define bytestring-index
+  (case-lambda
+    ((bstring pred) (bytestring-index bstring pred 0))
+    ((bstring pred start)
+     (bytestring-index bstring pred 0 (bytevector-length bstring)))
+    ((bstring pred start end)
+     (let lp ((i start))
+       (cond ((>= i end) #f)
+             ((pred (bytevector-u8-ref bstring i)) i)
+             (else (lp (+ i 1))))))))
+
+(define bytestring-index-right
+  (case-lambda
+    ((bstring pred) (bytestring-index-right bstring pred 0))
+    ((bstring pred start)
+     (bytestring-index bstring pred 0 (bytevector-length bstring)))
+    ((bstring pred start end)
+     (let lp ((i (- end 1)))
+       (cond ((< i start) #f)
+             ((pred (bytevector-u8-ref bstring i)) i)
+             (else (lp (- i 1))))))))

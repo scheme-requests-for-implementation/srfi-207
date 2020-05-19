@@ -6,6 +6,7 @@
 
   (export bytestring bytevector->hex-string list->bytestring list->bytestring
           bytestring-pad bytestring-pad-right bytestring-trim
-          bytestring-trim-right bytestring-trim-both bytestring-replace)
+          bytestring-trim-right bytestring-trim-both bytestring-replace
+          bytestring-index bytestring-index-right)
 
   (include "bytestrings.scm"))

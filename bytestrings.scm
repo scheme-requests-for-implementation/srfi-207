@@ -31,11 +31,7 @@
 ;; TODO: Error handling and algorithmic improvement.
 
 (define (bytestring . args)
-  (let lp ((bs (bytevector)) (args args))
-    (if (null? args)
-        bs
-        (lp (bytevector-append bs (convert-argument (car args) "bytestring"))
-            (cdr args)))))
+  (list->bytestring args))
 
 ;;; Conversion
 

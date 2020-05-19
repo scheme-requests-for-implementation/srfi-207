@@ -1,3 +1,18 @@
+;;; Utility
+
+(define (bytevector-index bvec pred)
+  (let ((len (bytevector-length bvec)))
+    (let lp ((i 0))
+      (cond ((= i len) #f)
+            ((pred (bytevector-u8-ref bvec i)) i)
+            (else (lp (+ i 1)))))))
+
+(define (bytevector-index-right bvec pred)
+  (let lp ((i (- (bytevector-length bvec) 1)))
+    (cond ((< i 0) #f)
+          ((pred (bytevector-u8-ref bvec i)) i)
+          (else (lp (- i 1))))))
+
 (define (convert-argument x error-location)
   (cond ((and (integer? x) (<= 0 x) (<= x 255))
          (bytevector x))
@@ -79,3 +94,20 @@
         bstring
         (bytevector-append bstring
                            (make-bytevector (- len old-len) char-or-u8)))))
+
+(define (bytestring-trim bstring pred)
+  (let ((new-start (bytevector-index bstring (lambda (b) (not (pred b))))))
+    (if new-start (bytevector-copy bstring new-start) (bytevector))))
+
+(define (bytestring-trim-right bstring pred)
+  (let ((new-end (+ 1 (bytevector-index-right bstring
+                                              (lambda (b) (not (pred b)))))))
+    (if new-end (bytevector-copy bstring 0 new-end) (bytevector))))
+
+(define (bytestring-trim-both bstring pred)
+  (let ((new-start (bytevector-index bstring (lambda (b) (not (pred b)))))
+        (new-end (+ 1 (bytevector-index-right bstring
+                                              (lambda (b) (not (pred b)))))))
+    (bytevector-copy bstring
+                     (or new-start 0)
+                     (or new-end (bytevector-length bstring)))))

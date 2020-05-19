@@ -45,7 +45,8 @@
 
 (define (list->bytestring lis)
   (fold-right (lambda (x bs)
-                (bytevector-append (convert-argument x "list->bytestring") bs))
+                (bytevector-append (convert-argument x "list->bytestring")
+                                   bs))
               (bytevector)
               lis))
 
@@ -82,21 +83,30 @@
     (if (>= old-len len)
         bstring
         (bytevector-append bstring
-                           (make-bytevector (- len old-len) char-or-u8)))))
+                           (make-bytevector (- len old-len)
+                                            char-or-u8)))))
 
 (define (bytestring-trim bstring pred)
-  (let ((new-start (bytestring-index bstring (lambda (b) (not (pred b))))))
-    (if new-start (bytevector-copy bstring new-start) (bytevector))))
+  (let ((new-start (bytestring-index bstring
+                                     (lambda (b) (not (pred b))))))
+    (if new-start
+        (bytevector-copy bstring new-start)
+        (bytevector))))
 
 (define (bytestring-trim-right bstring pred)
   (let ((new-end (+ 1 (bytestring-index-right bstring
-                                              (lambda (b) (not (pred b)))))))
-    (if new-end (bytevector-copy bstring 0 new-end) (bytevector))))
+                                              (lambda (b)
+                                                (not (pred b)))))))
+    (if new-end
+        (bytevector-copy bstring 0 new-end)
+        (bytevector))))
 
 (define (bytestring-trim-both bstring pred)
-  (let ((new-start (bytestring-index bstring (lambda (b) (not (pred b)))))
+  (let ((new-start (bytestring-index bstring
+                                     (lambda (b) (not (pred b)))))
         (new-end (+ 1 (bytestring-index-right bstring
-                                              (lambda (b) (not (pred b)))))))
+                                              (lambda (b)
+                                                (not (pred b)))))))
     (bytevector-copy bstring
                      (or new-start 0)
                      (or new-end (bytevector-length bstring)))))

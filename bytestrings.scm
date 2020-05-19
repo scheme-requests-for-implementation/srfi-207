@@ -1,4 +1,4 @@
-;;; Utility
+;;;; Utility
 
 (define (exact-natural? x)
   (and (exact? x) (integer? x) (not (negative? x))))
@@ -9,18 +9,19 @@
         ((and (char? x) (char<=? #\null x) (char<=? x #\delete))
          (bytevector (char->integer x)))
         ((bytevector? x) x)
-        ((string? x) (string->utf8 x))  ; TODO: ensure ASCII
-        (else ; TODO: error type
+         ;; TODO: ensure ASCII
+        ((string? x) (string->utf8 x))
+        (else
+         ;; TODO: ensure correct error type
          (error (string-append error-location ": invalid argument") x))))
 
-;;; Constructor
+;;;; Constructor
 
 ;; TODO: Error handling and algorithmic improvement.
-
 (define (bytestring . args)
   (list->bytestring args))
 
-;;; Conversion
+;;;; Conversion
 
 (define (bytevector-fold-right kons knil bvec)
   (let ((len (bytevector-length bvec)))
@@ -59,10 +60,11 @@
      (list-tabulate (bytevector-length bstring)
                     (lambda (i) (bytevector-u8-ref bstring i))))))
 
-;;; Selection
+;;;; Selection
 
 (define (bytestring-pad bstring len char-or-u8)
-  (assume (bytevector? bstring))  ; TODO: better type checks
+  ;; TODO: better type checks
+  (assume (bytevector? bstring))
   (assume (integer? len))
   (assume (or (char? char-or-u8) (integer? char-or-u8)))
   (let ((old-len (bytevector-length bstring)))
@@ -72,7 +74,8 @@
                            bstring))))
 
 (define (bytestring-pad-right bstring len char-or-u8)
-  (assume (bytevector? bstring))  ; TODO: better type checks
+  ;; TODO: better type checks
+  (assume (bytevector? bstring))
   (assume (integer? len))
   (assume (or (char? char-or-u8) (integer? char-or-u8)))
   (let ((old-len (bytevector-length bstring)))
@@ -98,14 +101,15 @@
                      (or new-start 0)
                      (or new-end (bytevector-length bstring)))))
 
-;;; Replacement
+;;;; Replacement
 
 (define bytestring-replace
   (case-lambda
     ((bstring1 bstring2 start end)
      (bytestring-replace bstring1 bstring2 start end start end))
     ((bstring1 bstring2 start1 end1 start2 end2)
-     (assume (bytevector? bstring1))  ; TODO: clean up this mess
+     ;; TODO: clean up this mess
+     (assume (bytevector? bstring1))
      (assume (bytevector? bstring2))
      (assume (exact-natural? start1))
      (assume (exact-natural? end1))
@@ -120,7 +124,7 @@
        (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
        bs-new))))
 
-;;; Searching
+;;;; Searching
 
 (define bytestring-index
   (case-lambda

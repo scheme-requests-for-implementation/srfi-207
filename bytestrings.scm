@@ -24,18 +24,6 @@
 (define (exact-natural? x)
   (and (integer? x) (exact? x) (not (negative? x))))
 
-(define (convert-argument x error-location)
-  (cond ((and (integer? x) (<= 0 x) (<= x 255))
-         (bytevector x))
-        ((and (char? x) (char<=? #\null x) (char<=? x #\delete))
-         (bytevector (char->integer x)))
-        ((bytevector? x) x)
-         ;; TODO: ensure ASCII
-        ((string? x) (string->utf8 x))
-        (else
-         ;; TODO: ensure correct error type
-         (error (string-append error-location ": invalid argument") x))))
-
 ;;;; Constructors
 
 (define (bytestring-segment-length obj)

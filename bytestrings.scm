@@ -191,6 +191,19 @@
              ((pred (bytevector-u8-ref bstring i)) i)
              (else (lp (- i 1))))))))
 
+(define (bytestring-break bstring pred)
+  (assume (bytevector? bstring))
+  (assume (procedure? pred))
+  (let ((tail-start (bytestring-index bstring pred)))
+    (if tail-start
+        (values (bytevector-copy bstring 0 tail-start)
+                (bytevector-copy bstring tail-start
+                                         (bytevector-length bstring)))
+        (values bstring (bytevector)))))
+
+(define (bytestring-span bstring pred)
+  (bytestring-break bstring (lambda (x) (not (pred x)))))
+
 ;;;; Comparison
 
 (cond-expand

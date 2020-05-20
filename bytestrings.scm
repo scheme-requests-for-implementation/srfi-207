@@ -190,3 +190,20 @@
        (cond ((< i start) #f)
              ((pred (bytevector-u8-ref bstring i)) i)
              (else (lp (- i 1))))))))
+
+;;;; Comparison
+
+(cond-expand
+  ((library (scheme bytevector))
+   (define (bytestring=? bstring1 bstring2)
+     (bytevector=? bstring1 bstring2)))
+  (else
+   (define (bytestring=? bstring1 bstring2)
+     (let ((len1 (bytevector-length bstring1)))
+       (and (= len1 (bytevector-length bstring2))
+            (let lp ((i 0))
+              (cond ((= i len1) #t)
+                    ((= (bytevector-u8-ref bstring1 i)
+                        (bytevector-u8-ref bstring2 i))
+                     (lp (+ i 1)))
+                    (else #f))))))))

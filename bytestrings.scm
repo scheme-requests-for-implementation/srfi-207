@@ -22,7 +22,7 @@
 ;;;; Utility
 
 (define (exact-natural? x)
-  (and (exact? x) (integer? x) (not (negative? x))))
+  (and (integer? x) (exact? x) (not (negative? x))))
 
 (define (convert-argument x error-location)
   (cond ((and (integer? x) (<= 0 x) (<= x 255))
@@ -36,12 +36,43 @@
          ;; TODO: ensure correct error type
          (error (string-append error-location ": invalid argument") x))))
 
-;;;; Constructor
+;;;; Constructors
 
-;; TODO: Error handling and algorithmic improvement.
+(define (bytestring-segment-length obj)
+  (cond ((and (exact-natural? obj) (< obj 256)) 1)
+        ((and (char? obj)
+              (char<=? #\null obj)
+              (char<=? obj #\delete))
+         1)
+        ((bytevector? obj) (bytevector-length obj))
+        ((string? obj) (string-length obj))
+        (else (error "invalid bytestring component" obj))))
+
+(define (arguments-byte-length args)
+  (fold (lambda (arg total) (+ total (bytestring-segment-length arg)))
+        0
+        args))
+
+(define (copy-bytestring-segment! to at from from-length)
+  (cond ((integer? from) (bytevector-u8-set! to at from))
+        ((char? from) (bytevector-u8-set! to at (char->integer from)))
+        ((bytevector? from) (bytevector-copy! to at from))
+        ((string? from) (bytevector-copy! to at (string->utf8 from)))))
+
+(define (list->bytestring lis)
+  (let* ((len (arguments-byte-length lis))
+         (bstring (make-bytevector len)))
+    (let lp ((i 0) (lis lis))
+      (if (null? lis)
+          bstring
+          (begin
+           (let ((segment-length (bytestring-segment-length (car lis))))
+             (copy-bytestring-segment! bstring i (car lis) segment-length)
+             (lp (+ i segment-length) (cdr lis))))))))
+
 (define (bytestring . args)
   (list->bytestring args))
-
+
 ;;;; Conversion
 
 (define (bytevector-fold-right kons knil bvec)
@@ -63,13 +94,6 @@
                              (string-append (integer->hex-string b) s))
                            (string)
                            bstring)))
-
-(define (list->bytestring lis)
-  (fold-right (lambda (x bs)
-                (bytevector-append (convert-argument x "list->bytestring")
-                                   bs))
-              (bytevector)
-              lis))
 
 ;; Returns a list of the exact integers comprising bstring.
 (cond-expand

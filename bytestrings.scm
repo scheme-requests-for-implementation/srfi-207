@@ -97,28 +97,26 @@
 
 ;;;; Selection
 
-(define (bytestring-pad bstring len char-or-u8)
+(define (bytestring-pad-left-or-right bstring len char-or-u8 side)
   (assume (bytevector? bstring))
   (assume (exact-natural? len))
   (unless (ascii-char-or-integer? char-or-u8)
     (error "invalid bytestring element" char-or-u8))
-  (let ((old-len (bytevector-length bstring)))
-    (if (>= old-len len)
+  (let ((pad-len (- len (bytevector-length bstring))))
+    (if (<= pad-len 0)
         bstring
-        (bytevector-append (make-bytevector (- len old-len) char-or-u8)
-                           bstring))))
+        (let ((padded (make-bytevector len (if (char? char-or-u8)
+                                               (char->integer char-or-u8)
+                                               char-or-u8)))
+              (offset (if (eqv? side 'right) 0 pad-len)))
+          (bytevector-copy! padded offset bstring)
+          padded))))
 
+(define (bytestring-pad bstring len char-or-u8)
+  (bytestring-pad-left-or-right bstring len char-or-u8 'left))
+
 (define (bytestring-pad-right bstring len char-or-u8)
-  (assume (bytevector? bstring))
-  (assume (integer? len))
-  (unless (ascii-char-or-integer? char-or-u8)
-    (error "invalid bytestring element" char-or-u8))
-  (let ((old-len (bytevector-length bstring)))
-    (if (>= old-len len)
-        bstring
-        (bytevector-append bstring
-                           (make-bytevector (- len old-len)
-                                            char-or-u8)))))
+  (bytestring-pad-left-or-right bstring len char-or-u8 'right))
 
 (define (bytestring-trim bstring pred)
   (assume (bytevector? bstring))

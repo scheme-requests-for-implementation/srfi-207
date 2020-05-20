@@ -24,17 +24,17 @@
 (define (exact-natural? x)
   (and (integer? x) (exact? x) (not (negative? x))))
 
+(define (ascii-char-or-integer? obj)
+  (let ((int-obj (if (char? obj) (char->integer obj) obj)))
+    (and (exact-natural? int-obj) (< int-obj 256))))
+
 ;;;; Constructors
 
 (define (bytestring-segment-length obj)
-  (cond ((and (exact-natural? obj) (< obj 256)) 1)
-        ((and (char? obj)
-              (char<=? #\null obj)
-              (char<=? obj #\delete))
-         1)
+  (cond ((ascii-char-or-integer? obj) 1)
         ((bytevector? obj) (bytevector-length obj))
         ((string? obj) (string-length obj))
-        (else (error "invalid bytestring component" obj))))
+        (else (error "invalid bytestring element" obj))))
 
 (define (arguments-byte-length args)
   (fold (lambda (arg total) (+ total (bytestring-segment-length arg)))
@@ -63,7 +63,7 @@
 
 ;;;; Conversion
 
-(define (bytevector-fold-right kons knil bvec)
+(define (bytevector-u8-fold-right kons knil bvec)
   (let ((len (bytevector-length bvec)))
     (let rec ((i 0))
       (if (>= i len)
@@ -72,18 +72,19 @@
                 (rec (+ i 1)))))))
 
 (define (integer->hex-string n)
-  (let ((s (number->string n 16)))
-    (if (even? (string-length s)) s (string-append "0" s))))
+  (let ((hex-raw (number->string n 16)))
+    (if (even? (string-length hex-raw))
+        hex-raw
+        (string-append "0" hex-raw))))
 
 (define (bytevector->hex-string bstring)
   (assume (bytevector? bstring))
   (let ((len (bytevector-length bstring)))
-    (bytevector-fold-right (lambda (b s)
-                             (string-append (integer->hex-string b) s))
-                           (string)
-                           bstring)))
+    (bytevector-u8-fold-right (lambda (byte hex)
+                                (string-append (integer->hex-string byte) hex))
+                              (string)
+                              bstring)))
 
-;; Returns a list of the exact integers comprising bstring.
 (cond-expand
   ((library (scheme bytevector))
    (define (bytestring->list bstring)
@@ -97,10 +98,10 @@
 ;;;; Selection
 
 (define (bytestring-pad bstring len char-or-u8)
-  ;; TODO: better type checks
   (assume (bytevector? bstring))
-  (assume (integer? len))
-  (assume (or (char? char-or-u8) (integer? char-or-u8)))
+  (assume (exact-natural? len))
+  (unless (ascii-char-or-integer? char-or-u8)
+    (error "invalid bytestring element" char-or-u8))
   (let ((old-len (bytevector-length bstring)))
     (if (>= old-len len)
         bstring
@@ -108,10 +109,10 @@
                            bstring))))
 
 (define (bytestring-pad-right bstring len char-or-u8)
-  ;; TODO: better type checks
   (assume (bytevector? bstring))
   (assume (integer? len))
-  (assume (or (char? char-or-u8) (integer? char-or-u8)))
+  (unless (ascii-char-or-integer? char-or-u8)
+    (error "invalid bytestring element" char-or-u8))
   (let ((old-len (bytevector-length bstring)))
     (if (>= old-len len)
         bstring
@@ -120,6 +121,8 @@
                                             char-or-u8)))))
 
 (define (bytestring-trim bstring pred)
+  (assume (bytevector? bstring))
+  (assume (procedure? pred))
   (let ((new-start (bytestring-index bstring
                                      (lambda (b) (not (pred b))))))
     (if new-start
@@ -127,6 +130,8 @@
         (bytevector))))
 
 (define (bytestring-trim-right bstring pred)
+  (assume (bytevector? bstring))
+  (assume (procedure? pred))
   (let ((new-end (+ 1 (bytestring-index-right bstring
                                               (lambda (b)
                                                 (not (pred b)))))))
@@ -135,6 +140,8 @@
         (bytevector))))
 
 (define (bytestring-trim-both bstring pred)
+  (assume (bytevector? bstring))
+  (assume (procedure? pred))
   (let ((new-start (bytestring-index bstring
                                      (lambda (b) (not (pred b)))))
         (new-end (+ 1 (bytestring-index-right bstring
@@ -175,6 +182,10 @@
     ((bstring pred start)
      (bytestring-index bstring pred 0 (bytevector-length bstring)))
     ((bstring pred start end)
+     (assume (bytevector? bstring))
+     (assume (procedure? pred))
+     (assume (exact-natural? start))
+     (assume (exact-natural? end))
      (let lp ((i start))
        (cond ((>= i end) #f)
              ((pred (bytevector-u8-ref bstring i)) i)
@@ -186,6 +197,10 @@
     ((bstring pred start)
      (bytestring-index bstring pred 0 (bytevector-length bstring)))
     ((bstring pred start end)
+     (assume (bytevector? bstring))
+     (assume (procedure? pred))
+     (assume (exact-natural? start))
+     (assume (exact-natural? end))
      (let lp ((i (- end 1)))
        (cond ((< i start) #f)
              ((pred (bytevector-u8-ref bstring i)) i)
@@ -212,6 +227,8 @@
      (bytevector=? bstring1 bstring2)))
   (else
    (define (bytestring=? bstring1 bstring2)
+     (assume (bytevector? bstring1))
+     (assume (bytevector? bstring2))
      (let ((len1 (bytevector-length bstring1)))
        (and (= len1 (bytevector-length bstring2))
             (let lp ((i 0))

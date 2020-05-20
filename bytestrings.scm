@@ -41,7 +41,7 @@
         0
         args))
 
-(define (copy-bytestring-segment! to at from from-length)
+(define (copy-bytestring-segment! to at from)
   (cond ((integer? from) (bytevector-u8-set! to at from))
         ((char? from) (bytevector-u8-set! to at (char->integer from)))
         ((bytevector? from) (bytevector-copy! to at from))
@@ -156,7 +156,6 @@
     ((bstring1 bstring2 start end)
      (bytestring-replace bstring1 bstring2 start end start end))
     ((bstring1 bstring2 start1 end1 start2 end2)
-     ;; TODO: clean up this mess
      (assume (bytevector? bstring1))
      (assume (bytevector? bstring2))
      (assume (exact-natural? start1))

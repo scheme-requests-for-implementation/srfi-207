@@ -235,6 +235,32 @@
 
 ;;;; Comparison
 
+(define (%bytestring-prefix-length bstring1 bstring2)
+  (let ((end (min (bytevector-length bstring1)
+                  (bytevector-length bstring2))))
+    (if (eqv? bstring1 bstring2)  ; fast path
+        end
+        (let lp ((i 0))
+          (if (or (>= i end)
+                  (not (= (bytevector-u8-ref bstring1 i)
+                          (bytevector-u8-ref bstring2 i))))
+              i
+              (lp (+ i 1)))))))
+
+;; Primitive bytevector comparison functions.
+(define (%bytestring-compare bstring1 bstring2 res< res= res>)
+  (let ((len1 (bytevector-length bstring1))
+        (len2 (bytevector-length bstring2)))
+    (let ((match (%bytestring-prefix-length bstring1 bstring2)))
+      (if (= match len1)
+          (if (= match len2) res= res<)
+          (if (= match len2)
+              res>
+              (if (< (bytevector-u8-ref bstring1 match)
+                     (bytevector-u8-ref bstring2 match))
+                  res<
+                  res>))))))
+
 (cond-expand
   ((library (scheme bytevector))
    (define (bytestring=? bstring1 bstring2)
@@ -243,11 +269,34 @@
    (define (bytestring=? bstring1 bstring2)
      (assume (bytevector? bstring1))
      (assume (bytevector? bstring2))
-     (let ((len1 (bytevector-length bstring1)))
-       (and (= len1 (bytevector-length bstring2))
-            (let lp ((i 0))
-              (cond ((= i len1) #t)
-                    ((= (bytevector-u8-ref bstring1 i)
-                        (bytevector-u8-ref bstring2 i))
-                     (lp (+ i 1)))
-                    (else #f))))))))
+     (and (= (bytevector-length bstring1) (bytevector-length bstring2))
+          (or (eqv? bstring1 bstring2)  ; fast path
+              (%bytestring-compare bstring1
+                                   bstring2
+                                   #f
+                                   #t
+                                   #f))))))
+
+(define (bytestring<? bstring1 bstring2)
+  (assume (bytevector? bstring1))
+  (assume (bytevector? bstring2))
+  (and (not (eqv? bstring1 bstring2))  ; fast path
+       (%bytestring-compare bstring1 bstring2 #t #f #f)))
+
+(define (bytestring>? bstring1 bstring2)
+  (assume (bytevector? bstring1))
+  (assume (bytevector? bstring2))
+  (and (not (eqv? bstring1 bstring2))  ; fast path
+       (%bytestring-compare bstring1 bstring2 #f #f #t)))
+
+(define (bytestring<=? bstring1 bstring2)
+  (assume (bytevector? bstring1))
+  (assume (bytevector? bstring2))
+  (or (eqv? bstring1 bstring2)         ; fast path
+      (%bytestring-compare bstring1 bstring2 #t #t #f)))
+
+(define (bytestring>=? bstring1 bstring2)
+  (assume (bytevector? bstring1))
+  (assume (bytevector? bstring2))
+  (or (eqv? bstring1 bstring2)         ; fast path
+      (%bytestring-compare bstring1 bstring2 #f #t #t)))

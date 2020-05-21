@@ -10,7 +10,11 @@ portable to any R7RS-small implementation with
 are optional dependencies.
 
 The implementation of base64 encoding and decoding is from
-[Chibi Scheme](http://synthcode.com/wiki/chibi-scheme).
+Alex Shinn's [Chibi Scheme](http://synthcode.com/wiki/chibi-scheme).
+
+The implementation of the bytestring comparison functions is heavily
+inspired by Olin Shivers's [SRFI 13](https://srfi.schemers.org/srfi-13)
+string comparison code.
 
 # Author
 

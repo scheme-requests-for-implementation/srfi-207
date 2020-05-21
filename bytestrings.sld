@@ -12,7 +12,7 @@
           bytestring-trim-right bytestring-trim-both bytestring-replace
           bytestring-index bytestring-index-right bytestring-break
           bytestring-span
-          bytestring=?)
+          bytestring=? bytestring>? bytestring<? bytestring<=? bytestring>=?)
 
   (include "base64.scm")
   (include "bytestrings.scm"))

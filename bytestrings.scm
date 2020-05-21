@@ -85,6 +85,23 @@
                               (string)
                               bstring)))
 
+(define bytevector->base64
+  (case-lambda
+    ((bvec) (bytevector->base64 bvec "+/"))
+    ((bvec digits)
+     (assume (bytevector? bvec))
+     (assume (string? digits))
+     (base64-encode-bytevector bvec digits))))
+
+(define base64->bytevector
+  (case-lambda
+    ((base64-string) (bytevector->base64 base64-string "+/"))
+    ((base64-string digits)
+     (assume (string? base64-string))
+     (assume (string? digits))
+     ;; FIXME: ensure base64-string is ASCII(?)
+     (base64-decode-bytevector (string->utf8 base64-string) digits))))
+
 (cond-expand
   ((library (scheme bytevector))
    (define (bytestring->list bstring)

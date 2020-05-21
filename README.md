@@ -9,6 +9,9 @@ portable to any R7RS-small implementation with
 [(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2)
 are optional dependencies.
 
+The implementation of base64 encoding and decoding is from
+[Chibi Scheme](http://synthcode.com/wiki/chibi-scheme).
+
 # Author
 
 Wolfgang Corcoran-Mathe

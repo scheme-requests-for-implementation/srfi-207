@@ -95,7 +95,7 @@
 
 (define base64->bytevector
   (case-lambda
-    ((base64-string) (bytevector->base64 base64-string "+/"))
+    ((base64-string) (base64->bytevector base64-string "+/"))
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))

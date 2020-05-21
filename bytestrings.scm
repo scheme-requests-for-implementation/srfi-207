@@ -54,9 +54,9 @@
       (if (null? lis)
           bstring
           (begin
-           (let ((segment-length (bytestring-segment-length (car lis))))
-             (copy-bytestring-segment! bstring i (car lis) segment-length)
-             (lp (+ i segment-length) (cdr lis))))))))
+           (copy-bytestring-segment! bstring i (car lis))
+           (lp (+ i (bytestring-segment-length (car lis)))
+               (cdr lis)))))))
 
 (define (bytestring . args)
   (list->bytestring args))

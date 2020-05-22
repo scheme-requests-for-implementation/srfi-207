@@ -349,9 +349,10 @@
      (assume (exact-natural? start))
      (assume (exact-natural? end))
      (let lp ((i start))
-       (cond ((>= i end) #f)
-             ((pred (bytevector-u8-ref bstring i)) i)
-             (else (lp (+ i 1))))))))
+       (and (< i end)
+            (if (pred (bytevector-u8-ref bstring i))
+                i
+                (lp (+ i 1))))))))
 
 (define bytestring-index-right
   (case-lambda
@@ -364,19 +365,31 @@
      (assume (exact-natural? start))
      (assume (exact-natural? end))
      (let lp ((i (- end 1)))
-       (cond ((< i start) #f)
-             ((pred (bytevector-u8-ref bstring i)) i)
-             (else (lp (- i 1))))))))
+       (and (>= i start)
+            (if (pred (bytevector-u8-ref bstring i))
+                i
+                (lp (- i 1))))))))
 
 (define (bytestring-break bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (let ((tail-start (bytestring-index bstring pred)))
-    (if tail-start
-        (values (bytevector-copy bstring 0 tail-start)
-                (bytevector-copy bstring tail-start
-                                         (bytevector-length bstring)))
-        (values bstring (bytevector)))))
+  (let ((end (bytevector-length bstring)))
+    (let lp ((i 0))
+      (if (> i end)
+          (values bstring (bytevector))
+          (if (pred (bytevector-u8-ref bstring i))
+              (values (bytevector-copy bstring 0 i)
+                      (bytevector-copy bstring i))
+              (lp (+ i 1)))))))
 
 (define (bytestring-span bstring pred)
-  (bytestring-break bstring (lambda (x) (not (pred x)))))
+  (assume (bytevector? bstring))
+  (assume (procedure? pred))
+  (let ((end (bytevector-length bstring)))
+    (let lp ((i 0))
+      (if (> i end)
+          (values bstring (bytevector))
+          (if (pred (bytevector-u8-ref bstring i))
+              (lp (+ i 1))
+              (values (bytevector-copy bstring 0 i)
+                      (bytevector-copy bstring i)))))))

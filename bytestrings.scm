@@ -406,3 +406,20 @@
               (lp (+ i 1))
               (values (bytevector-copy bstring 0 i)
                       (bytevector-copy bstring i)))))))
+
+;;;; Output
+
+(define (write-bytestring port . args)
+  (assume (binary-port? port))
+  (parameterize ((current-output-port port))
+    (for-each
+     (lambda (arg)
+       (cond ((and (exact-natural? arg) (< arg 256)) (write-u8 arg))
+             ((and (char? arg) (char<=? arg #\delete))
+              (write-u8 (char->integer arg)))
+             ((bytevector? arg) (write-bytevector arg))
+             ;; TODO: Ensure ASCII.
+             ((string? arg) (write-bytevector (string->utf8 arg)))
+             (else (raise (bytestring-error "invalid bytestring element"
+                                            arg)))))
+     args)))

@@ -16,11 +16,11 @@ This implementation provides the following additional procedures for
 inspecting error objects raised by some bytestring procedures; namely,
 those satisfying `bytestring-error?`:
 
-`(bytestring-error-message `*error-object*`)`
+`(bytestring-error-message` *error-object*`)`
 
 Returns the message (string) encapsulated by *error-object*.
 
-`(bytestring-error-irritants `*error-object*`)`
+`(bytestring-error-irritants` *error-object*`)`
 
 Returns a list of the irritants encapsulated by *error-object*.
 

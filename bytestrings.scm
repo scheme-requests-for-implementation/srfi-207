@@ -407,6 +407,42 @@
               (values (bytevector-copy bstring 0 i)
                       (bytevector-copy bstring i)))))))
 
+;;;; Joining & Splitting
+
+(define (bytevector-concatenate bvecs)
+  (fold-right bytevector-append
+              (bytevector)
+              bvecs))
+
+;; TODO: Break this up.
+(define bytestring-join
+  (case-lambda
+    ((bstrings delimiter) (bytestring-join bstrings delimiter 'infix))
+    ((bstrings delimiter grammar)
+     (assume (or (pair? bstrings) (null? bstrings)))
+     (assume (bytevector? delimiter))
+     (let ((build-bstring
+            (lambda (final lis)
+              (fold-right (lambda (bstring rest)
+                            (cons delimiter (cons bstring rest)))
+                          final
+                          lis))))
+       (if (pair? bstrings)
+           (bytevector-concatenate
+            (case grammar
+              ((infix strict-infix)
+               (cons (car bstrings) (build-bstring '() (cdr bstrings))))
+              ((prefix) (build-bstring '() bstrings))
+              ((suffix)
+               (cons (car bstrings)
+                     (build-bstring (list delimiter) (cdr bstrings))))
+              (else
+               (raise (bytestring-error "invalid grammar" grammar)))))
+           (if (eqv? grammar 'string-infix)
+               (raise
+                (bytestring-error "empty list with string-infix grammar"))
+               (bytevector)))))))
+
 ;;;; Output
 
 (define (write-bytestring port . args)

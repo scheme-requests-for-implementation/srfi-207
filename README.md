@@ -10,6 +10,20 @@ addition, [SRFI 145](https://srfi.schemers.org/srfi-145) and
 [(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2)
 are optional dependencies.
 
+# Extensions
+
+This implementation provides the following additional procedures for
+inspecting error objects raised by some bytestring procedures; namely,
+those satisfying `bytestring-error?`:
+
+`(bytestring-error-message `*error-object*`)`
+
+Returns the message (string) encapsulated by *error-object*.
+
+`(bytestring-error-irritants `*error-object*`)`
+
+Returns a list of the irritants encapsulated by *error-object*.
+
 # Acknowledgements
 
 The implementation of base64 encoding and decoding is from

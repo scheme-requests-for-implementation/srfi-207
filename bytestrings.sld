@@ -25,7 +25,8 @@
           bytestring-span
           bytestring=? bytestring>? bytestring<? bytestring<=? bytestring>=?
           bytestring-ci=? bytestring-ci>? bytestring-ci<? bytestring-ci<=?
-          bytestring-ci>=?)
+          bytestring-ci>=?
+          bytestring-error? bytestring-error-message bytestring-error-irritants)
 
   (include "base64.scm")
   (include "bytestrings.scm"))

@@ -28,13 +28,26 @@
   (let ((int-obj (if (char? obj) (char->integer obj) obj)))
     (and (exact-natural? int-obj) (< int-obj 256))))
 
+;;;; Error type
+
+(define-record-type <bytestring-error>
+  ;; TODO: More slots?
+  (raw-bytestring-error message irritants)
+  bytestring-error?
+  (message bytestring-error-message)
+  (irritants bytestring-error-irritants))
+
+(define (bytestring-error message . irritants)
+  (raw-bytestring-error message irritants))
+
 ;;;; Constructors
 
 (define (bytestring-segment-length obj)
   (cond ((ascii-char-or-integer? obj) 1)
         ((bytevector? obj) (bytevector-length obj))
         ((string? obj) (string-length obj))
-        (else (error "invalid bytestring element" obj))))
+        (else
+         (raise (bytestring-error "invalid bytestring element" obj)))))
 
 (define (arguments-byte-length args)
   (fold (lambda (arg total) (+ total (bytestring-segment-length arg)))

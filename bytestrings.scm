@@ -188,51 +188,6 @@
        (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
        bs-new))))
 
-;;;; Searching
-
-(define bytestring-index
-  (case-lambda
-    ((bstring pred) (bytestring-index bstring pred 0))
-    ((bstring pred start)
-     (bytestring-index bstring pred 0 (bytevector-length bstring)))
-    ((bstring pred start end)
-     (assume (bytevector? bstring))
-     (assume (procedure? pred))
-     (assume (exact-natural? start))
-     (assume (exact-natural? end))
-     (let lp ((i start))
-       (cond ((>= i end) #f)
-             ((pred (bytevector-u8-ref bstring i)) i)
-             (else (lp (+ i 1))))))))
-
-(define bytestring-index-right
-  (case-lambda
-    ((bstring pred) (bytestring-index-right bstring pred 0))
-    ((bstring pred start)
-     (bytestring-index bstring pred 0 (bytevector-length bstring)))
-    ((bstring pred start end)
-     (assume (bytevector? bstring))
-     (assume (procedure? pred))
-     (assume (exact-natural? start))
-     (assume (exact-natural? end))
-     (let lp ((i (- end 1)))
-       (cond ((< i start) #f)
-             ((pred (bytevector-u8-ref bstring i)) i)
-             (else (lp (- i 1))))))))
-
-(define (bytestring-break bstring pred)
-  (assume (bytevector? bstring))
-  (assume (procedure? pred))
-  (let ((tail-start (bytestring-index bstring pred)))
-    (if tail-start
-        (values (bytevector-copy bstring 0 tail-start)
-                (bytevector-copy bstring tail-start
-                                         (bytevector-length bstring)))
-        (values bstring (bytevector)))))
-
-(define (bytestring-span bstring pred)
-  (bytestring-break bstring (lambda (x) (not (pred x)))))
-
 ;;;; Comparison
 
 (define (bytestring-prefix-length bstring1 bstring2)
@@ -247,7 +202,10 @@
               i
               (lp (+ i 1)))))))
 
-;; Pseudo-inlining.  `byte' had better be an identifier!
+;; A portable implementation can't rely on inlining, but it can
+;; rely on macros.
+;;
+;; `byte' had better be an identifier!
 (define-syntax u8-fold-case
   (syntax-rules ()
     ((_ byte)
@@ -377,3 +335,48 @@
           (bytevector-length bstring2))
        (or (eqv? bstring1 bstring2)
            (bytestring-compare-ci bstring1 bstring2 #f #t #t))))
+
+;;;; Searching
+
+(define bytestring-index
+  (case-lambda
+    ((bstring pred) (bytestring-index bstring pred 0))
+    ((bstring pred start)
+     (bytestring-index bstring pred 0 (bytevector-length bstring)))
+    ((bstring pred start end)
+     (assume (bytevector? bstring))
+     (assume (procedure? pred))
+     (assume (exact-natural? start))
+     (assume (exact-natural? end))
+     (let lp ((i start))
+       (cond ((>= i end) #f)
+             ((pred (bytevector-u8-ref bstring i)) i)
+             (else (lp (+ i 1))))))))
+
+(define bytestring-index-right
+  (case-lambda
+    ((bstring pred) (bytestring-index-right bstring pred 0))
+    ((bstring pred start)
+     (bytestring-index bstring pred 0 (bytevector-length bstring)))
+    ((bstring pred start end)
+     (assume (bytevector? bstring))
+     (assume (procedure? pred))
+     (assume (exact-natural? start))
+     (assume (exact-natural? end))
+     (let lp ((i (- end 1)))
+       (cond ((< i start) #f)
+             ((pred (bytevector-u8-ref bstring i)) i)
+             (else (lp (- i 1))))))))
+
+(define (bytestring-break bstring pred)
+  (assume (bytevector? bstring))
+  (assume (procedure? pred))
+  (let ((tail-start (bytestring-index bstring pred)))
+    (if tail-start
+        (values (bytevector-copy bstring 0 tail-start)
+                (bytevector-copy bstring tail-start
+                                         (bytevector-length bstring)))
+        (values bstring (bytevector)))))
+
+(define (bytestring-span bstring pred)
+  (bytestring-break bstring (lambda (x) (not (pred x)))))

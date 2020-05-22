@@ -3,8 +3,19 @@
           (scheme case-lambda)
           (srfi 1)
           (srfi 145)
-          ;; TODO: cond-expand this.
-          (srfi 151))
+          ;; (srfi 151)
+          )
+
+  (cond-expand
+    ((library (srfi 151))             ; SRFI 151 is the One True Way
+     (import (srfi 151)))
+    (chicken                          ; DELETE ME
+     (begin
+      (import (chicken bitwise))
+      (define (mask size) (bitwise-not (arithmetic-shift -1 size)))
+      (define (bit-field n start end)
+        (bitwise-and (arithmetic-shift n (- start))
+                     (mask (- end start)))))))
 
   (export bytestring bytevector->hex-string list->bytestring list->bytestring
           bytevector->base64 base64->bytevector

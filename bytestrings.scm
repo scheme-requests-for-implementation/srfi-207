@@ -235,7 +235,7 @@
 
 ;;;; Comparison
 
-(define (%bytestring-prefix-length bstring1 bstring2)
+(define (bytestring-prefix-length bstring1 bstring2)
   (let ((end (min (bytevector-length bstring1)
                   (bytevector-length bstring2))))
     (if (eqv? bstring1 bstring2)  ; fast path
@@ -261,7 +261,7 @@
 (define (u8-ci<? byte1 byte2)
   (< (u8-fold-case byte1) (u8-fold-case byte2)))
 
-(define (%bytestring-prefix-length-ci bstring1 bstring2)
+(define (bytestring-prefix-length-ci bstring1 bstring2)
   (let ((end (min (bytevector-length bstring1)
                   (bytevector-length bstring2))))
     (if (eqv? bstring1 bstring2)  ; fast path
@@ -275,10 +275,10 @@
 
 ;;; Primitive bytevector comparison functions.
 
-(define (%bytestring-compare bstring1 bstring2 res< res= res>)
+(define (bytestring-compare bstring1 bstring2 res< res= res>)
   (let ((len1 (bytevector-length bstring1))
         (len2 (bytevector-length bstring2)))
-    (let ((match (%bytestring-prefix-length bstring1 bstring2)))
+    (let ((match (bytestring-prefix-length bstring1 bstring2)))
       (if (= match len1)
           (if (= match len2) res= res<)
           (if (= match len2)
@@ -288,10 +288,10 @@
                   res<
                   res>))))))
 
-(define (%bytestring-compare-ci bstring1 bstring2 res< res= res>)
+(define (bytestring-compare-ci bstring1 bstring2 res< res= res>)
   (let ((len1 (bytevector-length bstring1))
         (len2 (bytevector-length bstring2)))
-    (let ((match (%bytestring-prefix-length-ci bstring1 bstring2)))
+    (let ((match (bytestring-prefix-length-ci bstring1 bstring2)))
       (if (= match len1)
           (if (= match len2) res= res<)
           (if (= match len2)
@@ -312,35 +312,31 @@
      (and (= (bytevector-length bstring1)
              (bytevector-length bstring2))
           (or (eqv? bstring1 bstring2)
-              (%bytestring-compare bstring1
-                                   bstring2
-                                   #f
-                                   #t
-                                   #f))))))
+              (bytestring-compare bstring1 bstring2 #f #t #f))))))
 
 (define (bytestring<? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
   (and (not (eqv? bstring1 bstring2))
-       (%bytestring-compare bstring1 bstring2 #t #f #f)))
+       (bytestring-compare bstring1 bstring2 #t #f #f)))
 
 (define (bytestring>? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
   (and (not (eqv? bstring1 bstring2))
-       (%bytestring-compare bstring1 bstring2 #f #f #t)))
+       (bytestring-compare bstring1 bstring2 #f #f #t)))
 
 (define (bytestring<=? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
-      (%bytestring-compare bstring1 bstring2 #t #t #f)))
+      (bytestring-compare bstring1 bstring2 #t #t #f)))
 
 (define (bytestring>=? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
-      (%bytestring-compare bstring1 bstring2 #f #t #t)))
+      (bytestring-compare bstring1 bstring2 #f #t #t)))
 
 (define (bytestring-ci=? bstring1 bstring2)
   (assume (bytevector? bstring1))
@@ -348,11 +344,7 @@
   (and (= (bytevector-length bstring1)
           (bytevector-length bstring2))
        (or (eqv? bstring1 bstring2)
-           (%bytestring-compare-ci bstring1
-                                   bstring2
-                                   #f
-                                   #t
-                                   #f))))
+           (bytestring-compare-ci bstring1 bstring2 #f #t #f))))
 
 (define (bytestring-ci<? bstring1 bstring2)
   (assume (bytevector? bstring1))
@@ -360,11 +352,7 @@
   (and (= (bytevector-length bstring1)
           (bytevector-length bstring2))
        (and (not (eqv? bstring1 bstring2))
-            (%bytestring-compare-ci bstring1
-                                    bstring2
-                                    #t
-                                    #f
-                                    #f))))
+            (bytestring-compare-ci bstring1 bstring2 #t #f #f))))
 
 (define (bytestring-ci>? bstring1 bstring2)
   (assume (bytevector? bstring1))
@@ -372,11 +360,7 @@
   (and (= (bytevector-length bstring1)
           (bytevector-length bstring2))
        (and (not (eqv? bstring1 bstring2))
-            (%bytestring-compare-ci bstring1
-                                    bstring2
-                                    #f
-                                    #f
-                                    #t))))
+            (bytestring-compare-ci bstring1 bstring2 #f #f #t))))
 
 (define (bytestring-ci<=? bstring1 bstring2)
   (assume (bytevector? bstring1))
@@ -384,11 +368,7 @@
   (and (= (bytevector-length bstring1)
           (bytevector-length bstring2))
        (or (eqv? bstring1 bstring2)
-           (%bytestring-compare-ci bstring1
-                                   bstring2
-                                   #t
-                                   #t
-                                   #f))))
+           (bytestring-compare-ci bstring1 bstring2 #t #t #f))))
 
 (define (bytestring-ci>=? bstring1 bstring2)
   (assume (bytevector? bstring1))
@@ -396,8 +376,4 @@
   (and (= (bytevector-length bstring1)
           (bytevector-length bstring2))
        (or (eqv? bstring1 bstring2)
-           (%bytestring-compare-ci bstring1
-                                   bstring2
-                                   #f
-                                   #t
-                                   #t))))
+           (bytestring-compare-ci bstring1 bstring2 #f #t #t))))

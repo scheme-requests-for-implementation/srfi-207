@@ -442,6 +442,41 @@
               (bytestring-error "empty list with strict-infix grammar"))
              (bytevector))))))
 
+(define (%find-right bstring byte end)
+  (bytestring-index-right bstring
+                          (lambda (b) (= b byte))
+                          0
+                          end))
+
+(define (%skip-right bstring byte end)
+  (bytestring-index-right bstring
+                          (lambda (b) (not (= b byte)))
+                          0
+                          end))
+
+;; TODO: Determine what the `grammar' argument is supposed to do.
+;; Simplify.
+(define (bytestring-split bstring delimiter)
+  (assume (bytevector? bstring))
+  (assume (ascii-char-or-integer? delimiter))
+  (let ((delimiter-u8 (if (char? delimiter)
+                          (char->integer delimiter)
+                          delimiter)))
+    (let lp ((i (- (bytevector-length bstring) 1)) (split '()))
+      (cond ((and (> i 0) (%find-right bstring delimiter-u8 i)) =>
+             (lambda (end-1)
+               (let ((end (+ 1 end-1)))
+                 (cond ((%skip-right bstring delimiter-u8 end) =>
+                        (lambda (start-1)
+                          (lp start-1
+                              (cons (bytevector-copy bstring
+                                                     (+ 1 start-1)
+                                                     end)
+                                    split))))
+                       (else
+                        (cons (bytevector-copy bstring 0 end) split))))))
+            (else split)))))
+
 ;;;; Output
 
 (define (write-bytestring port . args)

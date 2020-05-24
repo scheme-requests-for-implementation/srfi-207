@@ -414,10 +414,10 @@
               (bytevector)
               bvecs))
 
-(define (%prepend-to-all bstrings final delimiter)
+(define (%prepend-to-all+tail bstrings tail delimiter)
   (fold-right (lambda (bstring rest)
                 (cons delimiter (cons bstring rest)))
-              final
+              tail
               bstrings))
 
 (define bytestring-join
@@ -431,12 +431,13 @@
           (case grammar
             ((infix strict-infix)
              (cons (car bstrings)
-                   (%prepend-to-all (cdr bstrings) '() delimiter)))
-            ((prefix) (%prepend-to-all bstrings '() delimiter))
+                   (%prepend-to-all+tail (cdr bstrings) '() delimiter)))
+            ((prefix) (%prepend-to-all+tail bstrings '() delimiter))
             ((suffix)
              (cons (car bstrings)
-                   (%prepend-to-all (cdr bstrings)
-                                    (list delimiter) delimiter)))
+                   (%prepend-to-all+tail (cdr bstrings)
+                                         (list delimiter)
+                                         delimiter)))
             (else
              (raise (bytestring-error "invalid grammar" grammar)))))
          (if (eqv? grammar 'string-infix)

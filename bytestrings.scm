@@ -355,7 +355,7 @@
   (case-lambda
     ((bstring pred) (bytestring-index bstring pred 0))
     ((bstring pred start)
-     (bytestring-index bstring pred 0 (bytevector-length bstring)))
+     (bytestring-index bstring pred start (bytevector-length bstring)))
     ((bstring pred start end)
      (assume (bytevector? bstring))
      (assume (procedure? pred))
@@ -371,7 +371,7 @@
   (case-lambda
     ((bstring pred) (bytestring-index-right bstring pred 0))
     ((bstring pred start)
-     (bytestring-index bstring pred 0 (bytevector-length bstring)))
+     (bytestring-index bstring pred start (bytevector-length bstring)))
     ((bstring pred start end)
      (assume (bytevector? bstring))
      (assume (procedure? pred))

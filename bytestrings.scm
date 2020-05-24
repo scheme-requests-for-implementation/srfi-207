@@ -414,11 +414,27 @@
               (bytevector)
               bvecs))
 
-(define (%prepend-to-all+tail bstrings tail delimiter)
-  (fold-right (lambda (bstring rest)
-                (cons delimiter (cons bstring rest)))
+;; Insert delimiter before each element of lis and append a tail
+;; list at the end.
+(define (%prepend-to-all+tail lis delimiter tail)
+  (fold-right (lambda (elt rest)
+                (cons delimiter (cons elt rest)))
               tail
-              bstrings))
+              lis))
+
+;; Insert delimiter before each element of lis.
+(define (%prepend-to-all lis delimiter)
+  (%prepend-to-all+tail lis '() delimiter))
+
+;; Insert delimiter between every two elements of lis and after the
+;; last element.
+(define (%suffix-intersperse lis delimiter)
+  (cons (car lis)
+        (%prepend-to-all+tail (cdr lis) delimiter (list delimiter))))
+
+;; Insert delimiter between every two elements of lis.
+(define (%intersperse lis delimiter)
+  (cons (car lis) (%prepend-to-all (cdr lis) delimiter)))
 
 (define bytestring-join
   (case-lambda
@@ -429,21 +445,101 @@
      (if (pair? bstrings)
          (bytevector-concatenate
           (case grammar
-            ((infix strict-infix)
-             (cons (car bstrings)
-                   (%prepend-to-all+tail (cdr bstrings) '() delimiter)))
-            ((prefix) (%prepend-to-all+tail bstrings '() delimiter))
-            ((suffix)
-             (cons (car bstrings)
-                   (%prepend-to-all+tail (cdr bstrings)
-                                         (list delimiter)
-                                         delimiter)))
+            ((infix strict-infix) (%intersperse bstrings delimiter))
+            ((prefix) (%prepend-to-all bstrings delimiter))
+            ((suffix) (%suffix-intersperse bstrings delimiter))
             (else
              (raise (bytestring-error "invalid grammar" grammar)))))
          (if (eqv? grammar 'string-infix)
              (raise
               (bytestring-error "empty list with strict-infix grammar"))
              (bytevector))))))
+
+(define (%find-right bstring byte end)
+  (bytestring-index-right bstring (lambda (b) (= b byte)) 0 end))
+
+(define (%skip-right bstring byte end)
+  (bytestring-index-right bstring (lambda (b) (not (= b byte))) 0 end))
+
+;; Infix split.  Thanks, Olin.
+(define (%bytestring-split bstring delimiter)
+  (let lp ((i (bytevector-length bstring)) (split '()))
+    (cond ((and (>= i 0) (%skip-right bstring delimiter i)) =>
+           (lambda (token-end-1)
+             (let ((token-end (+ 1 token-end-1)))
+               (cond ((%find-right bstring delimiter token-end-1) =>
+                      (lambda (token-start-1)
+                        (lp token-start-1
+                            (cons (bytevector-copy bstring
+                                                   (+ 1 token-start-1)
+                                                   token-end)
+                                  split))))
+                     (else
+                      (cons (bytevector-copy bstring 0 token-end)
+                            split))))))
+          (else split))))
+
+(define (outliers bstring delimiter)
+  (if (= (bytevector-length bstring) 0)
+      (values '() '())
+      (values
+       (if (= delimiter (bytevector-u8-ref bstring 0))
+                        (list (bytevector))
+                        '())
+       (if (= delimiter (bytevector-u8-ref
+                         bstring
+                         (- (bytevector-length bstring) 1)))
+           (list (bytevector))
+           '()))))
+
+;; Tack-on empty prefix and suffix tokens.  Hacky.
+(define (%bytestring-split/outliers bstring delimiter grammar)
+  (let-values (((splits) (%bytestring-split bstring delimiter))
+               ((prefix suffix) (outliers bstring delimiter)))
+    (case grammar
+      ((infix strict-infix) (append prefix splits suffix))
+      ((prefix) (append splits suffix))
+      ((suffix) (append prefix splits)))))
+
+(define bytestring-split
+  (case-lambda
+    ((bstring delimiter) (bytestring-split bstring delimiter 'infix))
+    ((bstring delimiter grammar)
+     (assume (bytevector? bstring))
+     (assume (ascii-char-or-integer? delimiter))
+     (case grammar
+       ((infix strict-infix)
+        (%bytestring-split/outliers bstring delimiter))
+       ((prefix)
+        (%bytestring-split/outliers
+         (bytestring-trim bstring (lambda (b) (= b delimiter)))
+         delimiter))
+       ((suffix)
+        (%bytestring-split/outliers
+         (bytestring-trim-right bstring (lambda (b) (= b delimiter)))
+         delimiter))
+       (else
+        (raise (bytestring-error "invalid grammar" grammar)))))))
+
+(define bytestring-split
+  (case-lambda
+    ((bstring delimiter) (bytestring-split bstring delimiter 'infix))
+    ((bstring delimiter grammar)
+     (assume (bytevector? bstring))
+     (assume (ascii-char-or-integer? delimiter))
+     (case grammar
+       ((infix strict-infix)
+        (%bytestring-split bstring delimiter))
+       ((prefix)
+        (%bytestring-split
+         (bytestring-trim bstring (lambda (b) (= b delimiter)))
+         delimiter))
+       ((suffix)
+        (%bytestring-split
+         (bytestring-trim-right bstring (lambda (b) (= b delimiter)))
+         delimiter))
+       (else
+        (raise (bytestring-error "invalid grammar" grammar)))))))
 
 ;;;; Output
 

@@ -24,15 +24,12 @@
 (define (exact-natural? x)
   (and (integer? x) (exact? x) (not (negative? x))))
 
-(define (ascii-char-or-integer? obj)
-  (let ((int-obj (if (char? obj) (char->integer obj) obj)))
-    (and (exact-natural? int-obj) (< int-obj 256))))
-
-(define (%bytestring-ascii? bstring)
-  (not (bytestring-index bstring (lambda (u8) (> u8 #x7F)))))
+(define (u8-or-ascii-char? obj)
+  (or (and (char? obj) (char<=? obj #\delete))
+      (and (exact-natural? obj) (< obj 256))))
 
 (define (string-ascii? str)
-  (and (string-every (lambda (c) (char<? c #\delete)) str) #t))
+  (and (string-every (lambda (c) (char<=? c #\delete)) str) #t))
 
 (define (%bytestring-null? bstring)
   (zero? (bytevector-length bstring)))
@@ -64,8 +61,7 @@
 (define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
-         ((and (bytevector? obj) (%bytestring-ascii? obj))
-          write-bytevector)
+         ((bytevector? obj) write-bytevector)
          ((and (string? obj) (string-ascii? obj)) write-string)
          (else
           (raise (bytestring-error "invalid bytestring element" obj))))
@@ -129,7 +125,7 @@
 (define (%bytestring-pad-left-or-right bstring len char-or-u8 right)
   (assume (bytevector? bstring))
   (assume (exact-natural? len))
-  (unless (ascii-char-or-integer? char-or-u8)
+  (unless (u8-or-ascii-char? char-or-u8)
     (error "invalid bytestring element" char-or-u8))
   (let ((pad-len (- len (bytevector-length bstring)))
         (pad-byte (if (char? char-or-u8)
@@ -490,7 +486,7 @@
     ((bstring delimiter) (bytestring-split bstring delimiter 'infix))
     ((bstring delimiter grammar)
      (assume (bytevector? bstring))
-     (assume (ascii-char-or-integer? delimiter))
+     (assume (u8-or-ascii-char? delimiter))
      (if (%bytestring-null? bstring)
          '()
          (%bytestring-split/append-outliers

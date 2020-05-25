@@ -487,26 +487,6 @@
        (else
         (raise (bytestring-error "invalid grammar" grammar)))))))
 
-(define bytestring-split
-  (case-lambda
-    ((bstring delimiter) (bytestring-split bstring delimiter 'infix))
-    ((bstring delimiter grammar)
-     (assume (bytevector? bstring))
-     (assume (ascii-char-or-integer? delimiter))
-     (case grammar
-       ((infix strict-infix)
-        (%bytestring-split bstring delimiter))
-       ((prefix)
-        (%bytestring-split
-         (bytestring-trim bstring (lambda (b) (= b delimiter)))
-         delimiter))
-       ((suffix)
-        (%bytestring-split
-         (bytestring-trim-right bstring (lambda (b) (= b delimiter)))
-         delimiter))
-       (else
-        (raise (bytestring-error "invalid grammar" grammar)))))))
-
 ;;;; Output
 
 (define (write-bytestring port . args)

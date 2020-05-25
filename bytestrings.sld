@@ -2,9 +2,15 @@
   (import (scheme base)
           (scheme case-lambda)
           (srfi 1)
-          (srfi 145)
           ;; (srfi 151)
           )
+
+  (cond-expand
+    ((library (srfi 145))
+     (import (srfi 145)))
+    (else
+     (begin
+      (define (assume _) #t))))
 
   (cond-expand
     ((library (srfi 151))             ; SRFI 151 is the One True Way

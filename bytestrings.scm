@@ -42,34 +42,20 @@
 
 ;;;; Constructors
 
-(define (bytestring-segment-length obj)
-  (cond ((ascii-char-or-integer? obj) 1)
-        ((bytevector? obj) (bytevector-length obj))
-        ((string? obj) (string-length obj))
-        (else
-         (raise (bytestring-error "invalid bytestring element" obj)))))
-
-(define (arguments-byte-length args)
-  (fold (lambda (arg total) (+ total (bytestring-segment-length arg)))
-        0
-        args))
-
-(define (copy-bytestring-segment! to at from)
-  (cond ((integer? from) (bytevector-u8-set! to at from))
-        ((char? from) (bytevector-u8-set! to at (char->integer from)))
-        ((bytevector? from) (bytevector-copy! to at from))
-        ((string? from) (bytevector-copy! to at (string->utf8 from)))))
-
 (define (list->bytestring lis)
-  (let* ((len (arguments-byte-length lis))
-         (bstring (make-bytevector len)))
-    (let lp ((i 0) (lis lis))
-      (if (null? lis)
-          bstring
-          (begin
-           (copy-bytestring-segment! bstring i (car lis))
-           (lp (+ i (bytestring-segment-length (car lis)))
-               (cdr lis)))))))
+  (assume (or (pair? lis) (null? lis)))
+  (parameterize ((current-output-port (open-output-bytevector)))
+    (for-each write-bytestring-segment lis)
+    (get-output-bytevector (current-output-port))))
+
+(define (write-bytestring-segment obj)
+  ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
+         ((and (char? obj) (char<? obj #\delete)) write-char)
+         ((bytevector? obj) write-bytevector)
+         ((string? obj) write-string)
+         (else
+          (raise (bytestring-error "invalid bytestring element" obj))))
+   obj))
 
 (define (bytestring . args)
   (list->bytestring args))

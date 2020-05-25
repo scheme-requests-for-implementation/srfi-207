@@ -28,6 +28,7 @@
           bytestring-ci>=?
           bytestring-error? bytestring-error-message bytestring-error-irritants
           bytestring-join bytestring-split
+          list->bytestring*
           write-bytestring)
 
   (include "base64.scm")

@@ -113,7 +113,7 @@
 
 ;;;; Selection
 
-(define (bytestring-pad-left-or-right bstring len char-or-u8 side)
+(define (bytestring-pad-left-or-right bstring len char-or-u8 right)
   (assume (bytevector? bstring))
   (assume (exact-natural? len))
   (unless (ascii-char-or-integer? char-or-u8)
@@ -124,15 +124,15 @@
         (let ((padded (make-bytevector len (if (char? char-or-u8)
                                                (char->integer char-or-u8)
                                                char-or-u8)))
-              (offset (if (eqv? side 'right) 0 pad-len)))
+              (offset (if right 0 pad-len)))
           (bytevector-copy! padded offset bstring)
           padded))))
 
 (define (bytestring-pad bstring len char-or-u8)
-  (bytestring-pad-left-or-right bstring len char-or-u8 'left))
+  (bytestring-pad-left-or-right bstring len char-or-u8 #f))
 
 (define (bytestring-pad-right bstring len char-or-u8)
-  (bytestring-pad-left-or-right bstring len char-or-u8 'right))
+  (bytestring-pad-left-or-right bstring len char-or-u8 #t))
 
 (define (bytestring-trim bstring pred)
   (assume (bytevector? bstring))

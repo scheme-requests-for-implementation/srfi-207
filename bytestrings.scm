@@ -45,10 +45,10 @@
 (define (list->bytestring lis)
   (assume (or (pair? lis) (null? lis)))
   (parameterize ((current-output-port (open-output-bytevector)))
-    (for-each write-bytestring-segment lis)
+    (for-each %write-bytestring-segment lis)
     (get-output-bytevector (current-output-port))))
 
-(define (write-bytestring-segment obj)
+(define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
          ((bytevector? obj) write-bytevector)
@@ -532,14 +532,4 @@
 (define (write-bytestring port . args)
   (assume (binary-port? port))
   (parameterize ((current-output-port port))
-    (for-each
-     (lambda (arg)
-       (cond ((and (exact-natural? arg) (< arg 256)) (write-u8 arg))
-             ((and (char? arg) (char<=? arg #\delete))
-              (write-u8 (char->integer arg)))
-             ((bytevector? arg) (write-bytevector arg))
-             ;; TODO: Ensure ASCII.
-             ((string? arg) (write-bytevector (string->utf8 arg)))
-             (else (raise (bytestring-error "invalid bytestring element"
-                                            arg)))))
-     args)))
+    (for-each %write-bytestring-segment args)))

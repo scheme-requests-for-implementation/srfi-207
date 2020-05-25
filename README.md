@@ -29,9 +29,11 @@ Returns a list of the irritants encapsulated by *error-object*.
 The implementation of base64 encoding and decoding is from
 Alex Shinn's [Chibi Scheme](http://synthcode.com/wiki/chibi-scheme).
 
-The implementation of the bytestring comparison functions is heavily
-inspired by Olin Shivers's [SRFI 13](https://srfi.schemers.org/srfi-13)
-string comparison code.
+The implementation of several functions is heavily
+inspired by Olin Shivers's [SRFI 13](https://srfi.schemers.org/srfi-13).
+
+Of course, any misuse of Alex's or Olin's code or ideas is purely my
+own.
 
 # Author
 

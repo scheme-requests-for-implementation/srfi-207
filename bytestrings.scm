@@ -104,7 +104,7 @@
     ((bvec digits)
      (assume (bytevector? bvec))
      (assume (string? digits))
-     (base64-encode-bytevector bvec digits))))
+     (utf8->string (base64-encode-bytevector bvec digits)))))
 
 (define base64->bytevector
   (case-lambda

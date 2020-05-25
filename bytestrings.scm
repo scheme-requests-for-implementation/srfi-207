@@ -46,7 +46,7 @@
 
 (define (bytestring-error message . irritants)
   (raw-bytestring-error message irritants))
-
+
 ;;;; Constructors
 
 (define (list->bytestring lis)
@@ -108,7 +108,7 @@
      (assume (string? digits))
      ;; FIXME: ensure base64-string is ASCII(?)
      (base64-decode-bytevector (string->utf8 base64-string) digits))))
-
+
 (cond-expand
   ((library (scheme bytevector))
    (define (bytestring->list bstring)
@@ -135,7 +135,7 @@
         (let ((padded (make-bytevector len pad-byte)))
           (bytevector-copy! padded (if right 0 pad-len) bstring)
           padded))))
-
+
 (define (bytestring-pad bstring len char-or-u8)
   (%bytestring-pad-left-or-right bstring len char-or-u8 #f))
 
@@ -172,7 +172,7 @@
     (bytevector-copy bstring
                      (or new-start 0)
                      (or new-end (bytevector-length bstring)))))
-
+
 ;;;; Replacement
 
 (define bytestring-replace
@@ -194,7 +194,7 @@
        (bytevector-copy! bs-new start1 bstring2 start2 end2)
        (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
        bs-new))))
-
+
 ;;;; Comparison
 
 (define (bytestring-prefix-length bstring1 bstring2)
@@ -235,7 +235,7 @@
                                 (bytevector-u8-ref bstring2 i))))
               i
               (lp (+ i 1)))))))
-
+
 ;;; Primitive bytevector comparison functions.
 
 (define (bytestring-compare bstring1 bstring2 res< res= res>)
@@ -294,7 +294,7 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (bytestring-compare bstring1 bstring2 #t #t #f)))
-
+
 (define (bytestring>=? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
@@ -340,7 +340,7 @@
           (bytevector-length bstring2))
        (or (eqv? bstring1 bstring2)
            (bytestring-compare-ci bstring1 bstring2 #f #t #t))))
-
+
 ;;;; Searching
 
 (define bytestring-index
@@ -398,7 +398,7 @@
               (lp (+ i 1))
               (values (bytevector-copy bstring 0 i)
                       (bytevector-copy bstring i)))))))
-
+
 ;;;; Joining & Splitting
 
 (define (%bytestring-join-nonempty bstrings delimiter grammar)
@@ -453,7 +453,7 @@
                       (cons (bytevector-copy bstring 0 token-end)
                             split))))))
           (else split))))
-
+
 ;; Return the prefix and suffix of the split list for bsting.
 ;; If bstring has leading or trailing, respectively, delimiter bytes,
 ;; then there are leading/resp. trailing empty bytestring segments.
@@ -494,7 +494,7 @@
           grammar)))))
 
 ;;;; Output
-
+
 (define (write-bytestring port . args)
   (assume (binary-port? port))
   (parameterize ((current-output-port port))

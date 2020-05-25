@@ -28,6 +28,14 @@
   (let ((int-obj (if (char? obj) (char->integer obj) obj)))
     (and (exact-natural? int-obj) (< int-obj 256))))
 
+(define (%bytestring-null? bstring)
+  (zero? (bytevector-length bstring)))
+
+(define (%bytestring-last bstring)
+  (when (%bytestring-null? bstring)
+    (error "empty bytestring" bstring))
+  (bytevector-u8-ref bstring (- (bytevector-length bstring) 1)))
+
 ;;;; Error type
 
 (define-record-type <bytestring-error>
@@ -427,7 +435,8 @@
 (define (%skip-right bstring byte end)
   (bytestring-index-right bstring (lambda (b) (not (= b byte))) 0 end))
 
-;; Infix split.  Thanks, Olin.
+;; Infix-split a trimmed (no leading/trailing delimiters) bytestring.
+;; Thanks, Olin.
 (define (%bytestring-split bstring delimiter)
   (let lp ((i (bytevector-length bstring)) (split '()))
     (cond ((and (>= i 0) (%skip-right bstring delimiter i)) =>
@@ -445,27 +454,29 @@
                             split))))))
           (else split))))
 
+;; Return the prefix and suffix of the split list for bsting.
+;; If bstring has leading or trailing, respectively, delimiter bytes,
+;; then there are leading/resp. trailing empty bytestring segments.
 (define (outliers bstring delimiter)
-  (if (= (bytevector-length bstring) 0)
-      (values '() '())
-      (values
-       (if (= delimiter (bytevector-u8-ref bstring 0))
-                        (list (bytevector))
-                        '())
-       (if (= delimiter (bytevector-u8-ref
-                         bstring
-                         (- (bytevector-length bstring) 1)))
-           (list (bytevector))
-           '()))))
+  (values
+   (if (= delimiter (bytevector-u8-ref bstring 0))
+       (list (bytevector))
+       '())
+   (if (= delimiter (%bytestring-last bstring))
+       (list (bytevector))
+       '())))
 
-;; Tack-on empty prefix and suffix tokens.  Hacky.
-(define (%bytestring-split/outliers bstring delimiter grammar)
-  (let-values (((splits) (%bytestring-split bstring delimiter))
-               ((prefix suffix) (outliers bstring delimiter)))
-    (case grammar
-      ((infix strict-infix) (append prefix splits suffix))
-      ((prefix) (append splits suffix))
-      ((suffix) (append prefix splits)))))
+;; Tack-on empty split list segments as needed.  Somewhat hacky.
+(define (%bytestring-split/append-outliers bstring delimiter grammar)
+  (let* ((trimmed (bytestring-trim-both bstring
+                                        (lambda (b) (= b delimiter))))
+         (splits (%bytestring-split trimmed delimiter)))
+    (let-values (((prefix suffix) (outliers bstring delimiter)))
+      (case grammar
+        ((infix strict-infix) (append prefix splits suffix))
+        ((prefix) (append splits suffix))
+        ((suffix) (append prefix splits))
+        (else (raise (bytestring-error "invalid grammar" grammar)))))))
 
 (define bytestring-split
   (case-lambda
@@ -473,19 +484,12 @@
     ((bstring delimiter grammar)
      (assume (bytevector? bstring))
      (assume (ascii-char-or-integer? delimiter))
-     (case grammar
-       ((infix strict-infix)
-        (%bytestring-split/outliers bstring delimiter))
-       ((prefix)
-        (%bytestring-split/outliers
-         (bytestring-trim bstring (lambda (b) (= b delimiter)))
-         delimiter))
-       ((suffix)
-        (%bytestring-split/outliers
-         (bytestring-trim-right bstring (lambda (b) (= b delimiter)))
-         delimiter))
-       (else
-        (raise (bytestring-error "invalid grammar" grammar)))))))
+     (if (%bytestring-null? bstring)
+         '()
+         (%bytestring-split/append-outliers
+          bstring
+          (if (char? delimiter) (char->integer delimiter) delimiter)
+          grammar)))))
 
 ;;;; Output
 

@@ -31,7 +31,6 @@
 ;;;; Error type
 
 (define-record-type <bytestring-error>
-  ;; TODO: More slots?
   (raw-bytestring-error message irritants)
   bytestring-error?
   (message bytestring-error-message)
@@ -48,6 +47,7 @@
     (for-each %write-bytestring-segment lis)
     (get-output-bytevector (current-output-port))))
 
+;; FIXME: Ensure bytevectors and strings are ASCII-only.
 (define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
@@ -202,9 +202,7 @@
               (lp (+ i 1)))))))
 
 ;; A portable implementation can't rely on inlining, but it can
-;; rely on macros.
-;;
-;; `byte' had better be an identifier!
+;; rely on macros.  `byte' had better be an identifier!
 (define-syntax u8-fold-case
   (syntax-rules ()
     ((_ byte)

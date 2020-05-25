@@ -393,32 +393,16 @@
 
 ;;;; Joining & Splitting
 
-(define (bytevector-concatenate bvecs)
-  (fold-right bytevector-append
-              (bytevector)
-              bvecs))
-
-;; Insert delimiter before each element of lis and append a tail
-;; list at the end.
-(define (%prepend-to-all+tail lis delimiter tail)
-  (fold-right (lambda (elt rest)
-                (cons delimiter (cons elt rest)))
-              tail
-              lis))
-
-;; Insert delimiter before each element of lis.
-(define (%prepend-to-all lis delimiter)
-  (%prepend-to-all+tail lis '() delimiter))
-
-;; Insert delimiter between every two elements of lis and after the
-;; last element.
-(define (%suffix-intersperse lis delimiter)
-  (cons (car lis)
-        (%prepend-to-all+tail (cdr lis) delimiter (list delimiter))))
-
-;; Insert delimiter between every two elements of lis.
-(define (%intersperse lis delimiter)
-  (cons (car lis) (%prepend-to-all (cdr lis) delimiter)))
+(define (%bytestring-join-nonempty bstrings delimiter grammar)
+  (parameterize ((current-output-port (open-output-bytevector)))
+    (when (eqv? grammar 'prefix) (write-bytevector delimiter))
+    (write-bytevector (car bstrings))
+    (for-each (lambda (bstr)
+                (write-bytevector delimiter)
+                (write-bytevector bstr))
+              (cdr bstrings))
+    (when (eqv? grammar 'suffix) (write-bytevector delimiter))
+    (get-output-bytevector (current-output-port))))
 
 (define bytestring-join
   (case-lambda
@@ -426,17 +410,15 @@
     ((bstrings delimiter grammar)
      (assume (or (pair? bstrings) (null? bstrings)))
      (assume (bytevector? delimiter))
+     (unless (memv grammar '(infix strict-infix prefix suffix))
+       (raise
+        (bytestring-error "bytestring-join: invalid grammar" grammar)))
      (if (pair? bstrings)
-         (bytevector-concatenate
-          (case grammar
-            ((infix strict-infix) (%intersperse bstrings delimiter))
-            ((prefix) (%prepend-to-all bstrings delimiter))
-            ((suffix) (%suffix-intersperse bstrings delimiter))
-            (else
-             (raise (bytestring-error "invalid grammar" grammar)))))
-         (if (eqv? grammar 'string-infix)
+         (%bytestring-join-nonempty bstrings delimiter grammar)
+         (if (eqv? grammar 'strict-infix)
              (raise
-              (bytestring-error "empty list with strict-infix grammar"))
+              (bytestring-error
+               "bytestring-join: empty list with strict-infix grammar"))
              (bytevector))))))
 
 (define (%find-right bstring byte end)

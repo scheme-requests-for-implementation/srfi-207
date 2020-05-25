@@ -112,9 +112,6 @@
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))
-     (unless (string-ascii? base64-string)
-       (error "base64->bytevector: string contains non-ASCII characters"
-              base64-string))
      (base64-decode-bytevector (string->utf8 base64-string) digits))))
 
 (cond-expand

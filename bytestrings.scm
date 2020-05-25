@@ -527,7 +527,10 @@
 
 ;;;; Output
 
+(define (%write-bytestrings bstrings)
+  (for-each write-bytevector bstrings))
+
 (define (write-bytestring port . args)
   (assume (binary-port? port))
   (parameterize ((current-output-port port))
-    (for-each %write-bytestring-segment args)))
+    (%write-bytestrings bstrings)))

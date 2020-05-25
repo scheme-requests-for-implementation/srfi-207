@@ -476,7 +476,9 @@
         ((infix strict-infix) (append prefix splits suffix))
         ((prefix) (append splits suffix))
         ((suffix) (append prefix splits))
-        (else (raise (bytestring-error "invalid grammar" grammar)))))))
+        (else
+         (raise (bytestring-error "bytestring-split: invalid grammar"
+                                  grammar)))))))
 
 (define bytestring-split
   (case-lambda

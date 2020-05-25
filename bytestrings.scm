@@ -124,9 +124,8 @@
                       char-or-u8)))
     (if (<= pad-len 0)
         bstring
-        (let ((padded (make-bytevector len pad-byte))
-              (offset (if right 0 pad-len)))
-          (bytevector-copy! padded offset bstring)
+        (let ((padded (make-bytevector len pad-byte)))
+          (bytevector-copy! padded (if right 0 pad-len) bstring)
           padded))))
 
 (define (bytestring-pad bstring len char-or-u8)

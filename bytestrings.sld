@@ -23,6 +23,14 @@
         (bitwise-and (arithmetic-shift n (- start))
                      (mask (- end start)))))))
 
+  (cond-expand
+    ((library (srfi 152))
+     (import (only (srfi 152) string-every)))
+    ((library (srfi 130))
+     (import (only (srfi 130) string-every)))
+    ((library (srfi 13))
+     (import (only (srfi 13) string-every))))
+
   (export bytestring bytevector->hex-string list->bytestring list->bytestring
           bytevector->base64 base64->bytevector
           bytestring-pad bytestring-pad-right bytestring-trim

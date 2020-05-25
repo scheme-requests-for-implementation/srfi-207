@@ -28,6 +28,12 @@
   (let ((int-obj (if (char? obj) (char->integer obj) obj)))
     (and (exact-natural? int-obj) (< int-obj 256))))
 
+(define (%bytestring-ascii? bstring)
+  (not (bytestring-index bstring (lambda (u8) (> u8 #x7F)))))
+
+(define (string-ascii? str)
+  (and (string-every (lambda (c) (char<? c #\delete)) str) #t))
+
 (define (%bytestring-null? bstring)
   (zero? (bytevector-length bstring)))
 
@@ -55,12 +61,12 @@
     (for-each %write-bytestring-segment lis)
     (get-output-bytevector (current-output-port))))
 
-;; FIXME: Ensure bytevectors and strings are ASCII-only.
 (define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
-         ((bytevector? obj) write-bytevector)
-         ((string? obj) write-string)
+         ((and (bytevector? obj) (%bytestring-ascii? obj))
+          write-bytevector)
+         ((and (string? obj) (string-ascii? obj)) write-string)
          (else
           (raise (bytestring-error "invalid bytestring element" obj))))
    obj))
@@ -106,7 +112,9 @@
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))
-     ;; FIXME: ensure base64-string is ASCII(?)
+     (unless (string-ascii? base64-string)
+       (error "base64->bytevector: string contains non-ASCII characters"
+              base64-string))
      (base64-decode-bytevector (string->utf8 base64-string) digits))))
 
 (cond-expand

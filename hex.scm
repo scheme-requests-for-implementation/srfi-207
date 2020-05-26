@@ -68,9 +68,6 @@
         res
         (string-append "0" res))))
 
-(define (hex-string->integer str)
-  (string->number str 16))
-
 (define (bytevector->hex-string bv)
   (let ((out (open-output-string))
         (len (bytevector-length bv)))
@@ -81,6 +78,3 @@
        (else
         (write-string (integer->hex-string (bytevector-u8-ref bv i)) out)
         (lp (+ i 1)))))))
-
-(define (hex-string->bytevector str)
-  (integer->bytevector (hex-string->integer str)))

@@ -72,6 +72,11 @@
 
 ;;;; Conversion
 
+(define (hex-string->bytevector hex-str)
+  (cond ((string-null? hex-str) (bytevector))
+        ((string->number hex-str 16) => integer->bytevector)
+        (else #f)))
+
 (define bytevector->base64
   (case-lambda
     ((bvec) (bytevector->base64 bvec "+/"))

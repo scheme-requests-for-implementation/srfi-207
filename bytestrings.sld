@@ -25,11 +25,11 @@
 
   (cond-expand
     ((library (srfi 152))
-     (import (only (srfi 152) string-every)))
+     (import (srfi 152)))
     ((library (srfi 130))
-     (import (only (srfi 130) string-every)))
+     (import (srfi 130)))
     ((library (srfi 13))
-     (import (only (srfi 13) string-every))))
+     (import (srfi 13))))
 
   (export bytestring list->bytestring bytevector->hex-string
           hex-string->bytevector bytevector->base64 base64->bytevector

@@ -25,6 +25,11 @@ Returns the message (string) encapsulated by *error-object*.
 
 Returns a list of the irritants encapsulated by *error-object*.
 
+# Implementation Notes
+
+`(hex-string->bytevector s)` returns false if `s` cannot be
+interepreted as a base 16 number, in the sense of `string->number`.
+
 # Acknowledgements
 
 The implementation of hex-string and base64 encoding and

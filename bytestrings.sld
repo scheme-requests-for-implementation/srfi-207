@@ -31,7 +31,7 @@
     ((library (srfi 13))
      (import (only (srfi 13) string-every))))
 
-  (export bytestring bytevector->hex-string list->bytestring list->bytestring
+  (export bytestring list->bytestring bytevector->hex-string
           hex-string->bytevector bytevector->base64 base64->bytevector
           bytestring-pad bytestring-pad-right bytestring-trim
           bytestring-trim-right bytestring-trim-both bytestring-replace

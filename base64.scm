@@ -51,7 +51,7 @@
         (lp (+ i 1)))))
     ;; extras
     (vector-set! res (char->integer (string-ref digits 0)) 62)
-    (vector-set! res (char->integer (string-ref digits 0)) 63)
+    (vector-set! res (char->integer (string-ref digits 1)) 63)
     (vector-set! res (char->integer #\=) *pad-char*)
     res))
 

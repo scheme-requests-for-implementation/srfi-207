@@ -72,28 +72,6 @@
 
 ;;;; Conversion
 
-(define (bytevector-u8-fold-right kons knil bvec)
-  (let ((len (bytevector-length bvec)))
-    (let rec ((i 0))
-      (if (>= i len)
-          knil
-          (kons (bytevector-u8-ref bvec i)
-                (rec (+ i 1)))))))
-
-(define (integer->hex-string n)
-  (let ((hex-raw (number->string n 16)))
-    (if (even? (string-length hex-raw))
-        hex-raw
-        (string-append "0" hex-raw))))
-
-(define (bytevector->hex-string bstring)
-  (assume (bytevector? bstring))
-  (let ((len (bytevector-length bstring)))
-    (bytevector-u8-fold-right (lambda (byte hex)
-                                (string-append (integer->hex-string byte) hex))
-                              (string)
-                              bstring)))
-
 (define bytevector->base64
   (case-lambda
     ((bvec) (bytevector->base64 bvec "+/"))

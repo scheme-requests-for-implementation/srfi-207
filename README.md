@@ -28,8 +28,11 @@ Returns a list of the irritants encapsulated by *error-object*.
 
 # Acknowledgements
 
-The implementation of base64 encoding and decoding is from
-Alex Shinn's [Chibi Scheme](http://synthcode.com/wiki/chibi-scheme).
+The implementation of hex-string and base64 encoding and
+decoding is from
+Alex Shinn's [chibi-scheme](http://synthcode.com/wiki/chibi-scheme).
+This code is found in the *hex.scm* and *base64.scm* files, along
+with the chibi-scheme license.
 
 The implementation of several functions is heavily
 inspired by Olin Shivers's [SRFI 13](https://srfi.schemers.org/srfi-13).

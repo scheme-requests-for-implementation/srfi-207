@@ -39,6 +39,10 @@
     (error "empty bytestring" bstring))
   (bytevector-u8-ref bstring (- (bytevector-length bstring) 1)))
 
+(define (negate pred)
+  (lambda (obj)
+    (not (pred obj))))
+
 ;;;; Error type
 
 (define-record-type <bytestring-error>
@@ -129,8 +133,7 @@
 (define (bytestring-trim bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (let ((new-start (bytestring-index bstring
-                                     (lambda (b) (not (pred b))))))
+  (let ((new-start (bytestring-index bstring (negate pred))))
     (if new-start
         (bytevector-copy bstring new-start)
         (bytevector))))
@@ -138,24 +141,21 @@
 (define (bytestring-trim-right bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (let ((new-end (+ 1 (bytestring-index-right bstring
-                                              (lambda (b)
-                                                (not (pred b)))))))
-    (if new-end
-        (bytevector-copy bstring 0 new-end)
-        (bytevector))))
+  (cond ((bytestring-index-right bstring (negate pred)) =>
+         (lambda (end-1)
+           (bytevector-copy bstring 0 (+ 1 end-1))))
+        (else (bytevector))))
 
 (define (bytestring-trim-both bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (let ((new-start (bytestring-index bstring
-                                     (lambda (b) (not (pred b)))))
-        (new-end (+ 1 (bytestring-index-right bstring
-                                              (lambda (b)
-                                                (not (pred b)))))))
-    (bytevector-copy bstring
-                     (or new-start 0)
-                     (or new-end (bytevector-length bstring)))))
+  (cond ((bytestring-index bstring (negate pred)) =>
+         (lambda (start)
+           (bytevector-copy
+            bstring
+            start
+            (+ 1 (bytestring-index-right bstring (negate pred))))))
+        (else (bytevector))))
 
 ;;;; Replacement
 

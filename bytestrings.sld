@@ -6,6 +6,11 @@
           )
 
   (cond-expand
+    ((library (scheme bytevector))
+     (import (scheme bytevector)))
+    (else #t))
+
+  (cond-expand
     ((library (srfi 145))
      (import (srfi 145)))
     (else

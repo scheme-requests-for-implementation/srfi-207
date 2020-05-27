@@ -26,7 +26,8 @@
       (define (mask size) (bitwise-not (arithmetic-shift -1 size)))
       (define (bit-field n start end)
         (bitwise-and (arithmetic-shift n (- start))
-                     (mask (- end start)))))))
+                     (mask (- end start))))))
+    (else #t))
 
   (cond-expand
     ((library (srfi 152))
@@ -34,7 +35,8 @@
     ((library (srfi 130))
      (import (srfi 130)))
     ((library (srfi 13))
-     (import (srfi 13))))
+     (import (srfi 13)))
+    (else #t))
 
   (export bytestring list->bytestring bytevector->hex-string bytestring->list
           hex-string->bytevector bytevector->base64 base64->bytevector

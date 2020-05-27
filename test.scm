@@ -48,7 +48,7 @@
                (display expr)
                (newline))))))
       (define (check-report) #t))))
-
+
 ;;;; Utility
 
 (define (print-header message)
@@ -137,10 +137,36 @@
   (check (bytestring-trim-both test-bstring (lambda (u8) (< u8 #x70)))
    => #u8(#x72)))
 
+(define (check-replacement)
+  (print-header "Running bytestring-replace tests...")
+
+  (check (bytestring-replace test-bstring (bytestring "mists") 1 5)
+   => (bytestring "lists"))
+  (check (bytestring-replace test-bstring (bytestring "faded") 2 5 1 5)
+   => (bytestring "loaded"))
+  (check (bytestring-replace (make-bytevector 5)
+                             test-bstring
+                             0
+                             (bytevector-length test-bstring))
+   => test-bstring)
+
+  ;; Replacing from the end of the `to' bytestring is equivalent
+  ;; to appending the two bytestrings.
+  (let ((test-bstring2 (bytestring " ipsum")))
+    (check (bytestring-replace test-bstring
+                               test-bstring2
+                               (bytevector-length test-bstring)
+                               (bytevector-length test-bstring)
+                               0
+                               (bytevector-length test-bstring2))
+     => (bytevector-append test-bstring test-bstring2))))
+
 (define (check-all)
   (check-constructor)
   (check-conversion)
-  (check-report)
-  (check-selection))
+  (check-selection)
+  (check-replacement)
+
+  (check-report))
 
 (check-all)

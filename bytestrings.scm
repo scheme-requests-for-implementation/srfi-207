@@ -71,8 +71,8 @@
           (raise (bytestring-error "invalid bytestring element" obj))))
    obj))
 
-(define (bytestring . args)
-  (list->bytestring args))
+(define (bytestring . arg)
+  (if (null? args) (bytevector) (list->bytestring args)))
 
 ;;;; Conversion
 

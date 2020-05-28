@@ -408,53 +408,33 @@
 (define (%find-right bstring byte end)
   (bytestring-index-right bstring (lambda (b) (= b byte)) 0 end))
 
-(define (%skip-right bstring byte end)
-  (bytestring-index-right bstring (lambda (b) (not (= b byte))) 0 end))
+(define (%bytestring-infix-split bstring delimiter)
+  (let lp ((token-end (bytevector-length bstring)) (split '()))
+    (cond ((< token-end 0) split)
+          ((%find-right bstring delimiter token-end) =>
+           (lambda (token-start-1)
+             (lp token-start-1
+                 (cons (bytevector-copy bstring (+ 1 token-start-1)
+                                                token-end)
+                       split))))
+          (else (cons (bytevector-copy bstring 0 token-end) split)))))
 
-;; Infix-split a trimmed (no leading/trailing delimiters) bytestring.
-;; Thanks, Olin.
-(define (%bytestring-split bstring delimiter)
-  (let lp ((i (bytevector-length bstring)) (split '()))
-    (cond ((and (>= i 0) (%skip-right bstring delimiter i)) =>
-           (lambda (token-end-1)
-             (let ((token-end (+ 1 token-end-1)))
-               (cond ((%find-right bstring delimiter token-end-1) =>
-                      (lambda (token-start-1)
-                        (lp token-start-1
-                            (cons (bytevector-copy bstring
-                                                   (+ 1 token-start-1)
-                                                   token-end)
-                                  split))))
-                     (else
-                      (cons (bytevector-copy bstring 0 token-end)
-                            split))))))
-          (else split))))
+(define (%trim-byte bstring byte)
+  (bytestring-trim bstring (lambda (b) (= b byte))))
+
+(define (%trim-right-byte bstring byte)
+  (bytestring-trim-right bstring (lambda (b) (= b byte))))
 
-;; Return the prefix and suffix of the split list for bsting.
-;; If bstring has leading or trailing, respectively, delimiter bytes,
-;; then there are leading/resp. trailing empty bytestring segments.
-(define (outliers bstring delimiter)
-  (values
-   (if (= delimiter (bytevector-u8-ref bstring 0))
-       (list (bytevector))
-       '())
-   (if (= delimiter (%bytestring-last bstring))
-       (list (bytevector))
-       '())))
-
-;; Tack-on empty split list segments as needed.  Somewhat hacky.
-(define (%bytestring-split/append-outliers bstring delimiter grammar)
-  (let* ((trimmed (bytestring-trim-both bstring
-                                        (lambda (b) (= b delimiter))))
-         (splits (%bytestring-split trimmed delimiter)))
-    (let-values (((prefix suffix) (outliers bstring delimiter)))
-      (case grammar
-        ((infix strict-infix) (append prefix splits suffix))
-        ((prefix) (append splits suffix))
-        ((suffix) (append prefix splits))
-        (else
-         (raise (bytestring-error "bytestring-split: invalid grammar"
-                                  grammar)))))))
+(define (%bytestring-split/trim-outliers bstring delimiter grammar)
+  (let ((trimmed (case grammar
+                  ((infix strict-infix) bstring)
+                  ((prefix) (%trim-byte bstring delimiter))
+                  ((suffix) (%trim-right-byte bstring delimiter))
+                  (else
+                   (raise (bytestring-error
+                           "bytestring-split: invalid grammar"
+                           grammar))))))
+    (%bytestring-infix-split trimmed delimiter)))
 
 (define bytestring-split
   (case-lambda
@@ -464,13 +444,13 @@
      (assume (u8-or-ascii-char? delimiter))
      (if (%bytestring-null? bstring)
          '()
-         (%bytestring-split/append-outliers
+         (%bytestring-split/trim-outliers
           bstring
           (if (char? delimiter) (char->integer delimiter) delimiter)
           grammar)))))
 
 ;;;; Output
-
+
 (define (write-bytestring port . args)
   (assume (binary-port? port))
   (parameterize ((current-output-port port))

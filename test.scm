@@ -63,6 +63,11 @@
 (define always (constantly #t))
 (define never (constantly #f))
 
+(define-syntax values~>list
+  (syntax-rules ()
+    ((_ expr)
+     (call-with-values (lambda () expr) list))))
+
 ;; Returns the value of expr, or, if an exception was raised, the
 ;; object that was raised.
 (define-syntax catch-exceptions
@@ -213,7 +218,34 @@
   (check (bytestring-ci>=? mixed-case-bstring test-bstring) => #t)
   (check (bytestring-ci>=? short-bstring test-bstring)      => #f))
 
+(define (check-searching)
+  (define (eq-r? b) (= b #x72))
+  (define (lt-r? b) (< b #x72))
+  (print-header "Running search tests...")
 
+  (check (bytestring-index test-bstring always)     => 0)
+  (check (bytestring-index test-bstring never)      => #f)
+  (check (bytestring-index test-bstring always 3)   => 3)
+  (check (bytestring-index test-bstring eq-r?) => 2)
+
+  (check (bytestring-index-right test-bstring always)     => 4)
+  (check (bytestring-index-right test-bstring never)      => #f)
+  (check (bytestring-index-right test-bstring always 3)   => 4)
+  (check (bytestring-index-right test-bstring eq-r?) => 2)
+
+  (check (values~>list (bytestring-span test-bstring always))
+   => (list test-bstring (bytevector)))
+  (check (values~>list (bytestring-span test-bstring never))
+   => (list (bytevector) test-bstring))
+  (check (values~>list (bytestring-span test-bstring lt-r?))
+   => (list (bytestring "lo") (bytestring "rem")))
+
+  (check (values~>list (bytestring-break test-bstring always))
+   => (list (bytevector) test-bstring))
+  (check (values~>list (bytestring-break test-bstring never))
+   => (list test-bstring (bytevector)))
+  (check (values~>list (bytestring-break test-bstring eq-r?))
+   => (list (bytestring "lo") (bytestring "rem"))))
 
 (define (check-all)
   (check-constructor)
@@ -221,7 +253,8 @@
   (check-selection)
   (check-replacement)
   (check-comparison)
+  (check-searching)
 
   (check-report))
 
-(check-all)
+;(check-all)

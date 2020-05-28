@@ -63,6 +63,7 @@
 (define always (constantly #t))
 (define never (constantly #f))
 
+;; Returns a list of the values produced by expr.
 (define-syntax values~>list
   (syntax-rules ()
     ((_ expr)
@@ -247,6 +248,16 @@
   (check (values~>list (bytestring-break test-bstring eq-r?))
    => (list (bytestring "lo") (bytestring "rem"))))
 
+(define (check-output)
+  (print-header "Running output tests...")
+
+  (check (call-with-port
+          (open-output-bytevector)
+          (lambda (port)
+            (write-bytestring port "lo" #\r #x65 #u8(#x6d))
+            (get-output-bytevector port)))
+   => test-bstring))
+
 (define (check-all)
   (check-constructor)
   (check-conversion)
@@ -254,6 +265,7 @@
   (check-replacement)
   (check-comparison)
   (check-searching)
+  (check-output)
 
   (check-report))
 

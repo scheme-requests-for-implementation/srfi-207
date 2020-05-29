@@ -80,6 +80,13 @@
         k
         (lambda () expr)))))))
 
+(define-syntax with-output-to-bytevector
+  (syntax-rules ()
+    ((_ thunk)
+     (parameterize ((current-output-port (open-output-bytevector)))
+       (thunk)
+       (get-output-bytevector (current-output-port))))))
+
 (define test-bstring (bytestring "lorem"))
 
 ;;;; Constructors
@@ -275,12 +282,15 @@
 (define (check-output)
   (print-header "Running output tests...")
 
-  (check (call-with-port
-          (open-output-bytevector)
-          (lambda (port)
-            (write-bytestring port "lo" #\r #x65 #u8(#x6d))
-            (get-output-bytevector port)))
-   => test-bstring))
+  (check (with-output-to-bytevector
+          (lambda ()
+            (write-bytestring (current-output-port) "lo" #\r #x65 #u8(#x6d))))
+   => test-bstring)
+  (check (bytestring-error?
+          (catch-exceptions
+           (with-output-to-bytevector
+            (lambda () (write-bytestring (current-output-port) #x100)))))
+   => #t))
 
 (define (check-all)
   (check-constructor)

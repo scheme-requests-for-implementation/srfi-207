@@ -25,7 +25,7 @@
      (import (srfi 13)))
     (else
      (error
-      "No string library found (need one of SRFIs 152, 130, or 13.")))
+      "No string library found (need one of SRFIs 152, 130, or 13).")))
 
   (export bytestring list->bytestring bytevector->hex-string bytestring->list
           hex-string->bytevector bytevector->base64 base64->bytevector

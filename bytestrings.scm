@@ -43,6 +43,13 @@
   (lambda (obj)
     (not (pred obj))))
 
+(define-syntax with-output-to-bytevector
+  (syntax-rules ()
+    ((_ thunk)
+     (parameterize ((current-output-port (open-output-bytevector)))
+       (thunk)
+       (get-output-bytevector (current-output-port))))))
+
 ;;;; Error type
 
 (define-record-type <bytestring-error>
@@ -58,9 +65,9 @@
 
 (define (list->bytestring lis)
   (assume (or (pair? lis) (null? lis)))
-  (parameterize ((current-output-port (open-output-bytevector)))
-    (for-each %write-bytestring-segment lis)
-    (get-output-bytevector (current-output-port))))
+  (with-output-to-bytevector
+   (lambda ()
+     (for-each %write-bytestring-segment lis))))
 
 (define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
@@ -378,15 +385,15 @@
 ;;;; Joining & Splitting
 
 (define (%bytestring-join-nonempty bstrings delimiter grammar)
-  (parameterize ((current-output-port (open-output-bytevector)))
-    (when (eqv? grammar 'prefix) (write-bytevector delimiter))
-    (write-bytevector (car bstrings))
-    (for-each (lambda (bstr)
-                (write-bytevector delimiter)
-                (write-bytevector bstr))
-              (cdr bstrings))
-    (when (eqv? grammar 'suffix) (write-bytevector delimiter))
-    (get-output-bytevector (current-output-port))))
+  (with-output-to-bytevector
+   (lambda ()
+     (when (eqv? grammar 'prefix) (write-bytevector delimiter))
+     (write-bytevector (car bstrings))
+     (for-each (lambda (bstr)
+                 (write-bytevector delimiter)
+                 (write-bytevector bstr))
+               (cdr bstrings))
+     (when (eqv? grammar 'suffix) (write-bytevector delimiter)))))
 
 (define bytestring-join
   (case-lambda

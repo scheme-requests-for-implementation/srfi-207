@@ -248,6 +248,30 @@
   (check (values~>list (bytestring-break test-bstring eq-r?))
    => (list (bytestring "lo") (bytestring "rem"))))
 
+(define (check-join-and-split)
+  (define test-segments '(#u8(1) #u8(2) #u8(3)))
+  (print-header "Running joining and splitting tests...")
+
+  (check (bytestring-join test-segments #u8(0))         => #u8(1 0 2 0 3))
+  (check (bytestring-join test-segments #u8(0) 'prefix) => #u8(0 1 0 2 0 3))
+  (check (bytestring-join test-segments #u8(0) 'suffix) => #u8(1 0 2 0 3 0))
+  (check (bytestring-join '() #u8(0))                   => #u8())
+  (check (bytestring-error?
+          (catch-exceptions
+           (bytestring-join '() #u8(0) 'strict-infix))) => #t)
+  (check (bytestring-error?
+          (catch-exceptions
+           (bytestring-join '() #u8(0) 'foofix)))       => #t)
+
+  (check (bytestring-split #u8(1 0 2 0 3) 0 'infix)    => test-segments)
+  (check (bytestring-split #u8(0 1 0 2 0 3) 0 'prefix) => test-segments)
+  (check (bytestring-split #u8(1 0 2 0 3 0) 0 'suffix) => test-segments)
+  (check (bytestring-split #u8(0 0) 0)                 => '(#u8() #u8() #u8()))
+  (check (bytestring-split #u8() 0)                    => '())
+  (check (bytestring-error?
+          (catch-exceptions
+           (bytestring-split #u8() 0 'foofix)))        => #t))
+
 (define (check-output)
   (print-header "Running output tests...")
 
@@ -265,6 +289,7 @@
   (check-replacement)
   (check-comparison)
   (check-searching)
+  (check-join-and-split)
   (check-output)
 
   (check-report))

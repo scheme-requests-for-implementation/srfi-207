@@ -304,4 +304,4 @@
 
   (check-report))
 
-;(check-all)
+(check-all)

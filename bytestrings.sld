@@ -2,8 +2,7 @@
   (import (scheme base)
           (scheme case-lambda)
           (srfi 1)
-          ;; (srfi 151)
-          )
+          (srfi 151))
 
   (cond-expand
     ((library (scheme bytevector))
@@ -18,25 +17,15 @@
       (define (assume _) #t))))
 
   (cond-expand
-    ((library (srfi 151))             ; SRFI 151 is the One True Way
-     (import (srfi 151)))
-    (chicken                          ; DELETE ME
-     (begin
-      (import (chicken bitwise))
-      (define (mask size) (bitwise-not (arithmetic-shift -1 size)))
-      (define (bit-field n start end)
-        (bitwise-and (arithmetic-shift n (- start))
-                     (mask (- end start))))))
-    (else #t))
-
-  (cond-expand
     ((library (srfi 152))
      (import (srfi 152)))
     ((library (srfi 130))
      (import (srfi 130)))
     ((library (srfi 13))
      (import (srfi 13)))
-    (else #t))
+    (else
+     (error
+      "No string library found (need one of SRFIs 152, 130, or 13.")))
 
   (export bytestring list->bytestring bytevector->hex-string bytestring->list
           hex-string->bytevector bytevector->base64 base64->bytevector

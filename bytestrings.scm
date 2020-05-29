@@ -429,11 +429,7 @@
   (let ((trimmed (case grammar
                   ((infix strict-infix) bstring)
                   ((prefix) (%trim-byte bstring delimiter))
-                  ((suffix) (%trim-right-byte bstring delimiter))
-                  (else
-                   (raise (bytestring-error
-                           "bytestring-split: invalid grammar"
-                           grammar))))))
+                  ((suffix) (%trim-right-byte bstring delimiter)))))
     (%bytestring-infix-split trimmed delimiter)))
 
 (define bytestring-split
@@ -442,6 +438,9 @@
     ((bstring delimiter grammar)
      (assume (bytevector? bstring))
      (assume (u8-or-ascii-char? delimiter))
+     (unless (memv grammar '(infix strict-infix prefix suffix))
+       (raise (bytestring-error "bytestring-split: invalid grammar"
+                                grammar)))
      (if (%bytestring-null? bstring)
          '()
          (%bytestring-split/trim-outliers

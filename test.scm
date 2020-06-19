@@ -69,16 +69,14 @@
     ((_ expr)
      (call-with-values (lambda () expr) list))))
 
-;; Returns the value of expr, or, if an exception was raised, the
-;; object that was raised.
-(define-syntax catch-exceptions
+;; If expr causes an exception to be raised, return 'bytestring-error
+;; if the raised object satisfies bytestring-error?, and #f otherwise.
+(define-syntax catch-bytestring-error
   (syntax-rules ()
    ((_ expr)
-    (call-with-current-continuation
-     (lambda (k)
-       (with-exception-handler
-        k
-        (lambda () expr)))))))
+    (guard (condition ((bytestring-error? condition) 'bytestring-error)
+                      (else #f))
+      expr))))
 
 (define-syntax with-output-to-bytevector
   (syntax-rules ()
@@ -96,9 +94,9 @@
   (check (bytestring "lo" #\r #x65 #u8(#x6d)) => test-bstring)
   (check (bytestring)                         => (bytevector))
 
-  (check (bytestring-error? (catch-exceptions (bytestring #x100))) => #t)
-  (check (bytestring-error? (catch-exceptions (bytestring "λ")))   => #t))
-
+  (check (catch-bytestring-error (bytestring #x100)) => 'bytestring-error)
+  (check (catch-bytestring-error (bytestring "λ"))   => 'bytestring-error))
+
 (define (check-conversion)
   (print-header "Running conversion tests...")
   (check (bytevector->hex-string test-bstring) => "6c6f72656d")
@@ -149,7 +147,7 @@
   (check (bytestring-trim-both test-bstring never)  => test-bstring)
   (check (bytestring-trim-both test-bstring (lambda (u8) (< u8 #x70)))
    => #u8(#x72)))
-
+
 (define (check-replacement)
   (print-header "Running bytestring-replace tests...")
 
@@ -202,7 +200,7 @@
   (check (bytestring>=? test-bstring mixed-case-bstring) => #t)
   (check (bytestring>=? mixed-case-bstring test-bstring) => #f)
   (check (bytestring>=? short-bstring test-bstring)      => #f)
-
+
   (check (bytestring-ci=? test-bstring test-bstring)        => #t)
   (check (bytestring-ci=? test-bstring
                           #u8(#x6c #x6f #x72 #x65 #x6d))
@@ -254,7 +252,7 @@
    => (list test-bstring (bytevector)))
   (check (values~>list (bytestring-break test-bstring eq-r?))
    => (list (bytestring "lo") (bytestring "rem"))))
-
+
 (define (check-join-and-split)
   (define test-segments '(#u8(1) #u8(2) #u8(3)))
   (print-header "Running joining and splitting tests...")
@@ -263,21 +261,18 @@
   (check (bytestring-join test-segments #u8(0) 'prefix) => #u8(0 1 0 2 0 3))
   (check (bytestring-join test-segments #u8(0) 'suffix) => #u8(1 0 2 0 3 0))
   (check (bytestring-join '() #u8(0))                   => #u8())
-  (check (bytestring-error?
-          (catch-exceptions
-           (bytestring-join '() #u8(0) 'strict-infix))) => #t)
-  (check (bytestring-error?
-          (catch-exceptions
-           (bytestring-join '() #u8(0) 'foofix)))       => #t)
+  (check (catch-bytestring-error
+           (bytestring-join '() #u8(0) 'strict-infix))  => 'bytestring-error)
+  (check (catch-bytestring-error
+           (bytestring-join '() #u8(0) 'foofix))        => 'bytestring-error)
 
   (check (bytestring-split #u8(1 0 2 0 3) 0 'infix)    => test-segments)
   (check (bytestring-split #u8(0 1 0 2 0 3) 0 'prefix) => test-segments)
   (check (bytestring-split #u8(1 0 2 0 3 0) 0 'suffix) => test-segments)
   (check (bytestring-split #u8(0 0) 0)                 => '(#u8() #u8() #u8()))
   (check (bytestring-split #u8() 0)                    => '())
-  (check (bytestring-error?
-          (catch-exceptions
-           (bytestring-split #u8() 0 'foofix)))        => #t))
+  (check (catch-bytestring-error
+           (bytestring-split #u8() 0 'foofix))         => 'bytestring-error))
 
 (define (check-output)
   (print-header "Running output tests...")
@@ -286,11 +281,10 @@
           (lambda ()
             (write-bytestring (current-output-port) "lo" #\r #x65 #u8(#x6d))))
    => test-bstring)
-  (check (bytestring-error?
-          (catch-exceptions
+  (check (catch-bytestring-error
            (with-output-to-bytevector
-            (lambda () (write-bytestring (current-output-port) #x100)))))
-   => #t))
+            (lambda () (write-bytestring (current-output-port) #x100))))
+   => 'bytestring-error))
 
 (define (check-all)
   (check-constructor)

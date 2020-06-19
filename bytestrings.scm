@@ -35,8 +35,7 @@
   (zero? (bytevector-length bstring)))
 
 (define (%bytestring-last bstring)
-  (when (%bytestring-null? bstring)
-    (error "empty bytestring" bstring))
+  (assume (not (%bytestring-null? bstring)) "empty bytestring")
   (bytevector-u8-ref bstring (- (bytevector-length bstring) 1)))
 
 (define (negate pred)
@@ -119,8 +118,7 @@
 (define (%bytestring-pad-left-or-right bstring len char-or-u8 right)
   (assume (bytevector? bstring))
   (assume (exact-natural? len))
-  (unless (u8-or-ascii-char? char-or-u8)
-    (error "invalid bytestring element" char-or-u8))
+  (assume (u8-or-ascii-char? char-or-u8))
   (let ((pad-len (- len (bytevector-length bstring)))
         (pad-byte (if (char? char-or-u8)
                       (char->integer char-or-u8)

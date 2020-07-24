@@ -103,16 +103,6 @@
      (assume (string? digits))
      (base64-decode-bytevector (string->utf8 base64-string) digits))))
 
-(cond-expand
-  ((library (scheme bytevector))
-   (define (bytestring->list bstring)
-     (bytevector->u8-list bstring)))
-  (else
-   (define (bytestring->list bstring)
-     (assume (bytevector? bstring))
-     (list-tabulate (bytevector-length bstring)
-                    (lambda (i) (bytevector-u8-ref bstring i))))))
-
 ;;;; Selection
 
 (define (%bytestring-pad-left-or-right bstring len char-or-u8 right)

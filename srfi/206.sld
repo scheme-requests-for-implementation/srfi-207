@@ -6,8 +6,15 @@
 
   (cond-expand
     ((library (scheme bytevector))
-     (import (scheme bytevector)))
-    (else #t))
+     (begin
+      (import (scheme bytevector))
+      (define (bytestring->list bstring)
+        (bytevector->u8-list bstring))))
+    (else
+     (define (bytestring->list bstring)
+       (assume (bytevector? bstring))
+       (list-tabulate (bytevector-length bstring)
+                      (lambda (i) (bytevector-u8-ref bstring i))))))
 
   (cond-expand
     ((library (srfi 145))

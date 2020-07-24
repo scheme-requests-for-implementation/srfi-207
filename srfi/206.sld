@@ -1,4 +1,4 @@
-(define-library (bytestrings)
+(define-library (srfi 206)
   (import (scheme base)
           (scheme case-lambda)
           (srfi 1)
@@ -42,4 +42,4 @@
 
   (include "base64.scm")
   (include "hex.scm")
-  (include "bytestrings.scm"))
+  (include "206.scm"))

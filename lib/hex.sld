@@ -1,6 +1,7 @@
 (define-library (lib hex)
-  (import (scheme base))
+  (import (scheme base)
+          (srfi 151))
 
-  (export integer->bytevector integer->hex-string)
+  (export integer->bytevector bytevector->hex-string)
 
   (include "hex.scm"))

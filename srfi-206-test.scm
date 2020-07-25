@@ -20,7 +20,7 @@
 ;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (import (scheme base))
-(import (bytestrings))
+(import (srfi 206))
 
 (cond-expand
   ((library (srfi 78))

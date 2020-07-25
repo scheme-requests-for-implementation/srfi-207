@@ -1,4 +1,4 @@
-(define-library (lib base64)
+(define-library (foof base64)
   (import (scheme base)
           (srfi 151))
 

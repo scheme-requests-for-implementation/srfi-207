@@ -1,4 +1,4 @@
-(define-library (lib hex)
+(define-library (foof hex)
   (import (scheme base)
           (srfi 151))
 

@@ -3,8 +3,8 @@
           (scheme case-lambda)
           (srfi 1)
           (srfi 151)
-          (lib hex)
-          (lib base64))
+          (foof hex)
+          (foof base64))
 
   (cond-expand
     ((library (scheme bytevector))

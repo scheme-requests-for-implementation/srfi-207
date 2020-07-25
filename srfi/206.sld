@@ -2,7 +2,9 @@
   (import (scheme base)
           (scheme case-lambda)
           (srfi 1)
-          (srfi 151))
+          (srfi 151)
+          (lib hex)
+          (lib base64))
 
   (cond-expand
     ((library (scheme bytevector))
@@ -47,6 +49,4 @@
           bytestring-join bytestring-split
           write-bytestring)
 
-  (include "base64.scm")
-  (include "hex.scm")
   (include "206.scm"))

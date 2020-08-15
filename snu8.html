@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>SRFI ###: String-notated bytevectors</title>
+    <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
+    <link rel="stylesheet" href="https://srfi.schemers.org/srfi.css" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1"></head>
+  <body>
+    <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI logo" /></a>###: String-notated bytevectors</h1>
+
+<p>by Daphne Preston-Kendal</p>
+
+<h2 id="status">Status</h2>
+
+??? the draft/final/withdrawn status of the SRFI, information on how
+to subscribe to its mailing list, and important dates in its history.
+The editor will add this section.
+
+<h2 id="abstract">Abstract</h2>
+
+<p>To ease the human reading and writing of Scheme code involving strings encoded as bytevectors in ASCII-related encodings, a notation for bytevectors is proposed which allows printable ASCII characters to be used literally without being converted to their corresponding integer forms.
+
+<h2 id="issues">Issues</h2>
+
+<p>Should you have to import a library before using this notation?
+
+<p>Should there be a special version of <code>write-bytevector</code> which forces the use of this notation? Should <code>write-bytevector</code> and friends even be allowed to use this notation by default?
+
+<p>I notice R6RS actually uses <code>#vu8</code> for its built-in bytevectors where everyone else uses <code>#u8</code>. Should that be supported with a string notation too? Can we just throw R6RS into the crevasse?
+
+<h2 id="rationale">Rationale</h2>
+
+<p>When bytevectors contain string data in an ASCII-related character encoding (e.g. UTF-8 or ISO 8859), it is much more tractable for human programmers to deal with them in the form <code>#u8"recursion"</code> than in the form <code>#u8(114 101 99 117 114 115 105 111 110)</code>; this is true for strings in many languages which use the Latin script, even when small numbers of non-ASCII characters are used (<code>#u8"r\xE9;cursivit\xE9;"</code>).
+
+<p>In this specification it is assumed that bytevectors are as defined in R7RS-small 6.9. Implementations may also consider them equivalent to R6RS bytevectors (R6RS 4.3.4) or SRFI 4 <code>u8vector</code>s, depending which kind of homogenous vectors of unsigned 8-bit integers an implementation supports.
+
+<h2 id="specification">Specification</h2>
+
+<p>The basic form of a string-notated bytevector is:
+
+<blockquote><code>#u8"</code> <var>content</var> <code>"</code></blockquote>
+
+<p>To avoid character encoding issues within string-notated bytevectors, only printable ASCII characters (that is, Unicode codepoints in the range from U+0020 to U+007E inclusive) are allowed to be used within the <var>content</var> of a string-notated bytevector. All other characters must be expressed through mnemonic or inline hex escapes, and <code>"</code> and <code>\</code> must also be escaped as in normal Scheme strings.
+
+<p>Within the <var>content</var> of a string-notated bytevector:
+
+<ul>
+  <li>the sequence <code>\"</code> represents the integer 34;
+  <li>the sequence <code>\\</code> represents the integer 92;
+  <li>the following mnemonic sequences represent the corresponding integers:
+    <table>
+      <tr><th>Seq.            <th>Integer
+      <tr><td><code>\a</code> <td>7
+      <tr><td><code>\b</code> <td>8
+      <tr><td><code>\t</code> <td>9
+      <tr><td><code>\n</code> <td>10
+      <tr><td><code>\r</code> <td>13
+    </table>
+  <li>the sequence <code>\x</code> followed by one or two hexadecimal digits followed by <code>;</code> represents the integer specified;
+  <li>any other printable ASCII character represents the character number of that character in the ASCII/Unicode code chart; and
+  <li>it is an error to use any other character within a string-notated bytevector.
+</ul>
+
+<p>When the Scheme reader encounters a string-notated bytevector, it outputs a datum identical to if that bytevector had been written out in full. That is, <code>#u8"A"</code> is exactly equivalent to <code>#u8(65)</code>.
+
+<p>A Scheme implementation which supports string-notated bytevectors may use this notation when the <code>write-bytevector</code> procedure is called, or when any of the <code>write</code> family of this procedures is called upon a bytevector or upon another datum containing a bytevector.
+
+<h2 id="implementation">Implementation</h2>
+
+<h3>Formal syntax</h3>
+
+<p>The formal syntax of Scheme (defined in R7RS-small 7.1) is amended as follows.
+
+<ul>
+<li><p>In the definition of ⟨token⟩, after ‘| ⟨string⟩’, insert ‘| ⟨string-notated bytevector⟩’.
+<li><p>After the definition of ⟨byte⟩ is inserted:
+   <blockquote>
+    <p>⟨string-notated bytevector⟩ &rarr; <code>#u8"</code> ⟨string-notated bytevector element⟩* <code>"</code><br>
+    ⟨string-notated bytevector element⟩ &rarr; ⟨any printable ASCII character other than <code>"</code> or <code>\</code>⟩<br>
+    <span style="margin-left:1em">| ⟨mnemonic escape⟩ | <code>\"</code> | <code>\\</code></span><br>
+    <span style="margin-left:1em">| <code>\</code>⟨intraline whitespace⟩*⟨line ending⟩⟨intraline whitespace⟩*</span><br>
+    <span style="margin-left:1em">| ⟨inline hex escape⟩</span>
+   </blockquote>
+</ul>
+
+<h2 id="acknowledgements">Acknowledgements</h2>
+
+<p>This notation is inspired by the notation used in Python since version 2.6 for <code>bytes</code> objects, which are fundamentally similar in purpose to Scheme bytevectors, especially in R7RS.
+
+<h2 id="copyright">Copyright</h2>
+<p>Copyright &copy; Daphne Preston-Kendal (2020).</p>
+
+<p>
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:</p>
+
+<p>
+  The above copyright notice and this permission notice (including the
+  next paragraph) shall be included in all copies or substantial
+  portions of the Software.</p>
+<p>
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.</p>
+
+  <hr>
+  <address>Editor: <a href="mailto:srfi-editors+at+srfi+dot+schemers+dot+org">Arthur A. Gleckler</a></address></body></html>

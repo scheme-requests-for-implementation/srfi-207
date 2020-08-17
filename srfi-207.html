@@ -26,9 +26,7 @@
 
 <h2 id="issues">Issues</h2>
 
-<p>Should you have to import a library before using this notation?
-
-<p>Should there be a special version of <code>write-bytevector</code> which forces the use of this notation? Should <code>write-bytevector</code> and friends even be allowed to use this notation by default?
+<p>Should there be a special version of <code>write</code> which forces the use of this notation?
 
 <p>I notice R6RS actually uses <code>#vu8</code> for its built-in bytevectors where everyone else uses <code>#u8</code>. Should that be supported with a string notation too?
 
@@ -67,7 +65,7 @@
 
 <p>When the Scheme reader encounters a string-notated bytevector, it produces a datum as if that bytevector had been written out in full. That is, <code>#u8"A"</code> is exactly equivalent to <code>#u8(65)</code>.
 
-<p>A Scheme implementation which supports string-notated bytevectors may use this notation when the <code>write-bytevector</code> procedure is called, or when any of the <code>write</code> family of procedures is called upon a bytevector or upon another datum containing a bytevector.
+<p>A Scheme implementation which supports string-notated bytevectors may not by default use this notation when any of the <code>write</code> family of procedures is called upon a bytevector or upon another datum containing a bytevector. A future SRFI is expected to add a configurable version of the <code>write</code> procedure which may enable the use of this notation in this context.
 
 <h2 id="implementation">Implementation</h2>
 

@@ -26,9 +26,7 @@
 
 <h2 id="issues">Issues</h2>
 
-<p>Should you have to import a library before using this notation?
-
-<p>Should there be a special version of <code>write-bytevector</code> which forces the use of this notation? Should <code>write-bytevector</code> and friends even be allowed to use this notation by default?
+<p>Should there be a special version of <code>write</code> which forces the use of this notation?
 
 <p>I notice R6RS actually uses <code>#vu8</code> for its built-in bytevectors where everyone else uses <code>#u8</code>. Should that be supported with a string notation too?
 
@@ -62,12 +60,12 @@
     </table>
   <li>the sequence <code>\x</code> followed by one or two hexadecimal digits followed by <code>;</code> represents the integer specified;
   <li>any other printable ASCII character represents the character number of that character in the ASCII/Unicode code chart; and
-  <li>it is an error to use any other character within a string-notated bytevector.
+  <li>it is an error to use any other character or sequence beginning with <code>\</code> within a string-notated bytevector.
 </ul>
 
 <p>When the Scheme reader encounters a string-notated bytevector, it produces a datum as if that bytevector had been written out in full. That is, <code>#u8"A"</code> is exactly equivalent to <code>#u8(65)</code>.
 
-<p>A Scheme implementation which supports string-notated bytevectors may use this notation when the <code>write-bytevector</code> procedure is called, or when any of the <code>write</code> family of procedures is called upon a bytevector or upon another datum containing a bytevector.
+<p>A Scheme implementation which supports string-notated bytevectors may not by default use this notation when any of the <code>write</code> family of procedures is called upon a bytevector or upon another datum containing a bytevector. A future SRFI is expected to add a configurable version of the <code>write</code> procedure which may enable the use of this notation in this context.
 
 <h2 id="implementation">Implementation</h2>
 
@@ -90,6 +88,8 @@
 <h2 id="acknowledgements">Acknowledgements</h2>
 
 <p>This notation is inspired by the notation used in Python since version 2.6 for <code>bytes</code> objects, which are fundamentally similar in purpose to Scheme bytevectors, especially in R7RS.
+
+<p>Lassi Kortela corrected an embarrassing technical error. Marc Nieper-Wißkirchen explained why the <code>write</code> procedure ought not to be allowed to use this notation by default.
 
 <h2 id="copyright">Copyright</h2>
 <p>Copyright &copy; Daphne Preston-Kendal (2020).</p>

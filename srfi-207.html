@@ -60,7 +60,7 @@
     </table>
   <li>the sequence <code>\x</code> followed by one or two hexadecimal digits followed by <code>;</code> represents the integer specified;
   <li>any other printable ASCII character represents the character number of that character in the ASCII/Unicode code chart; and
-  <li>it is an error to use any other character within a string-notated bytevector.
+  <li>it is an error to use any other character or sequence beginning with <code>\</code> within a string-notated bytevector.
 </ul>
 
 <p>When the Scheme reader encounters a string-notated bytevector, it produces a datum as if that bytevector had been written out in full. That is, <code>#u8"A"</code> is exactly equivalent to <code>#u8(65)</code>.

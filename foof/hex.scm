@@ -1,4 +1,5 @@
-;;;; Hex-string <-> bytevector conversion routines from chibi-scheme.
+;;;; Hex-string <-> bytevector conversion routines from chibi-scheme,
+;;;; with some modifications.
 ;;;
 ;;; Copyright (c) 2009-2018 Alex Shinn
 ;;; All rights reserved.
@@ -38,25 +39,9 @@
    (else
     (let lp ((n n) (res '()))
       (if (zero? n)
-          (let* ((len (length res))
-                 (bv (make-bytevector len 0)))
-            (do ((i 0 (+ i 1))
-                 (ls res (cdr ls)))
-                ((= i len) bv)
-              (bytevector-u8-set! bv i (car ls))))
-          (lp (quotient n 256) (cons (remainder n 256) res)))))))
-
-;; The inverse of integer->bytevector.  Convert a bytevector
-;; representing the base-256 big-endian form (the zero index holds
-;; the MSB) to the corresponding unsigned integer.
-(define (bytevector->integer bv)
-  (let ((len (bytevector-length bv)))
-    (let lp ((i 0) (n 0))
-      (if (>= i len)
-          n
-          (lp (+ i 1)
-              (+ (arithmetic-shift n 8)
-                 (bytevector-u8-ref bv i)))))))
+          (u8-list->bytevector res)
+          (lp (truncate-quotient n 256)
+              (cons (truncate-remainder n 256) res)))))))
 
 ;;;; Hex string conversion
 
@@ -70,12 +55,13 @@
 
 ;; Exported.
 (define (bytevector->hex-string bv)
-  (let ((out (open-output-string))
-        (len (bytevector-length bv)))
-    (let lp ((i 0))
-      (cond
-       ((>= i len)
-        (get-output-string out))
-       (else
-        (write-string (integer->hex-string (bytevector-u8-ref bv i)) out)
-        (lp (+ i 1)))))))
+  (let ((len (bytevector-length bv)))
+    (call-with-port
+     (open-output-string)
+     (lambda (out)
+       (let lp ((i 0))
+         (cond ((>= i len) (get-output-string out))
+               (else
+                (write-string (integer->hex-string (bytevector-u8-ref bv i))
+                              out)
+                (lp (+ i 1)))))))))

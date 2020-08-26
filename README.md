@@ -4,12 +4,12 @@ This is an implementation of a
 [pre-SRFI specification](https://bitbucket.org/cowan/r7rs-wg1-infra/src/default/BytestringsCowan.md)
 by John Cowan which provides bytestrings for Scheme.  It should be
 portable to any R7RS-small implementation with
+[(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2),
 [SRFI 1/(scheme list)](https://srfi.schemers.org/srfi-1),
 [SRFI 151/(scheme bitwise)](https://srfi.schemers.org/srfi-151), and
 one of Scheme's string libraries (one of SRFIs 152, 130, or 13).  In
-addition, [SRFI 145](https://srfi.schemers.org/srfi-145) and
-[(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2)
-are optional dependencies.
+addition, [SRFI 145](https://srfi.schemers.org/srfi-145)
+is an optional dependency.
 
 # Extensions
 

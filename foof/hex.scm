@@ -31,17 +31,14 @@
 ;; Convert an unsigned integer n to a bytevector representing
 ;; the base-256 big-endian form (the zero index holds the MSB).
 (define (integer->bytevector n)
-  (cond
-   ((zero? n)
-    (make-bytevector 1 0))
-   ((negative? n)
-    (error "can't convert a negative integer to bytevector" n))
-   (else
-    (let lp ((n n) (res '()))
-      (if (zero? n)
-          (u8-list->bytevector res)
-          (lp (truncate-quotient n 256)
-              (cons (truncate-remainder n 256) res)))))))
+  (assume (and (integer? n) (not (negative? n))))
+  (if (zero? n)
+      (make-bytevector 1 0)
+      (u8-list->bytevector
+       (unfold-right zero?
+                     (lambda (n) (truncate-remainder n 256))
+                     (lambda (n) (truncate-quotient n 256))
+                     n))))
 
 ;;;; Hex string conversion
 

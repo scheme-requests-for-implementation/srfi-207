@@ -62,6 +62,7 @@
       <tr><td><code>\r</code> <td>13
     </table>
   <li>the sequence <code>\x</code> followed by one or two hexadecimal digits followed by <code>;</code> represents the integer specified;
+  <li>the sequence <code>\</code> followed by zero or more intraline whitespace characters, followed by a newline, followed by zero or more further intraline whitespace characters, is ignored and corresponds to no entry in the resulting bytevector;
   <li>any other printable ASCII character represents the character number of that character in the ASCII/Unicode code chart; and
   <li>it is an error to use any other character or sequence beginning with <code>\</code> within a string-notated bytevector.
 </ul>

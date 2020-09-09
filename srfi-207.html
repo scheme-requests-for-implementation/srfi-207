@@ -9,7 +9,11 @@
   <body>
     <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI logo" /></a>207: String-notated bytevectors</h1>
 
-<p>by Daphne Preston-Kendal</p>
+<p>by
+  Daphne Preston-Kendal (external notation),
+  John Cowan (procedure design),
+  Wolfgang Corcoran-Mathe (implementation)
+</p>
 
 <h2 id="status">Status</h2>
 
@@ -33,11 +37,13 @@
 
 <p>When bytevectors contain string data in an ASCII-related character encoding (e.g. UTF-8 or ISO 8859), it is much more tractable for human programmers to deal with them in the form <code>#u8"recursion"</code> than in the form <code>#u8(114 101 99 117 114 115 105 111 110)</code>; this is true for strings in many languages which use the Latin script, even when small numbers of non-ASCII characters are used (<code>#u8"r\xE9;cursivit\xE9;"</code>).
 
+<p>In addition, this SRFI provides bytevectors with additional procedures that closely resemble those provided for strings. For example, bytevectors can be padded or trimmed, compared case-sensitively or case-insensitively, searched, joined, and split.
+
 <p>In this specification it is assumed that bytevectors are as defined in R7RS-small 6.9. Implementations may also consider them equivalent to R6RS bytevectors (R6RS 4.3.4) or SRFI 4 <code>u8vector</code>s, depending which kind of homogeneous vectors of unsigned 8-bit integers an implementation supports.
 
 <h2 id="specification">Specification</h2>
 
-<p>To avoid confusion with the names used in other SRFIs, the names of these procedures use the word <em>bytestring</em> instead of <em>bytevector</em>. However, these names refer to exactly the same type.
+<p>To avoid confusion with the names used in other SRFIs, the names of these procedures use the word <dfn>bytestring</dfn> instead of <dfn>bytevector</dfn>. However, these names refer to exactly the same type.
 
 <h3>External notation</h3>
 

@@ -1,6 +1,6 @@
 * SRFI 207: String-notated bytevectors
 
-** by Daphne Preston-Kendal
+** by Daphne Preston-Kendal (external notation), John Cowan (procedure design), and Wolfgang Corcoran-Mathe (implementatio)
 
 
 

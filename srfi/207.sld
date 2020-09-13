@@ -1,4 +1,4 @@
-(define-library (srfi 206)
+(define-library (srfi 207)
   (import (scheme base)
           (scheme case-lambda)
           (srfi 1)
@@ -51,4 +51,4 @@
           bytestring-join bytestring-split
           write-bytestring)
 
-  (include "206.scm"))
+  (include "207.scm"))

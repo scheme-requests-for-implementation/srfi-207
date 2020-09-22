@@ -49,16 +49,6 @@
        (thunk)
        (get-output-bytevector (current-output-port))))))
 
-(define (bytevector-for-each proc bvec)
-  (assume (procedure? proc))
-  (assume (bytevector? bvec))
-  (let ((len (bytevector-length bvec)))
-    (let lp ((i 0))
-      (cond ((= i len) (if #f #f))
-            (else
-             (proc (bytevector-u8-ref bvec i))
-             (lp (+ i 1)))))))
-
 ;;;; Error type
 
 (define-record-type <bytestring-error>
@@ -99,7 +89,7 @@
   (call-with-port
    (open-output-string)
    (lambda (port)
-     (bytevector-for-each
+     (u8vector-for-each
       (lambda (b)
         (cond ((and (< b 14) (assv b backslash-codepoints)) =>
 	       (lambda (p)

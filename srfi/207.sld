@@ -39,6 +39,7 @@
       "No string library found (need one of SRFIs 152, 130, or 13).")))
 
   (export bytestring list->bytestring bytevector->hex-string bytestring->list
+          bytevector->string
           hex-string->bytevector bytevector->base64 base64->bytevector
           bytestring-pad bytestring-pad-right bytestring-trim
           bytestring-trim-right bytestring-trim-both bytestring-replace

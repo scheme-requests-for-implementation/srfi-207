@@ -49,6 +49,16 @@
        (thunk)
        (get-output-bytevector (current-output-port))))))
 
+(define (bytevector-for-each proc bvec)
+  (assume (procedure? proc))
+  (assume (bytevector? bvec))
+  (let ((len (bytevector-length bvec)))
+    (let lp ((i 0))
+      (cond ((= i len) (if #f #f))
+            (else
+             (proc (bytevector-u8-ref bvec i))
+             (lp (+ i 1)))))))
+
 ;;;; Error type
 
 (define-record-type <bytestring-error>
@@ -81,6 +91,27 @@
   (if (null? args) (bytevector) (list->bytestring args)))
 
 ;;;; Conversion
+
+(define backslash-codepoints
+  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
+
+(define (bytevector->string bstring . rest)
+  (call-with-port
+   (open-output-string)
+   (lambda (port)
+     (bytevector-for-each
+      (lambda (b)
+        (cond ((and (< b 14) (assv b backslash-codepoints)) =>
+	       (lambda (p)
+		 (write-char #\\ port)
+		 (write-char (cdr p) port)))
+	      ((and (>= b #x20) (<= b #x7e))
+               (write-char (integer->char b) port))
+	      (else (raise (bytestring-error "invalid byte" b)))))
+      bstring)
+     (if (and (pair? rest) (car rest))
+         (string-append "v" (get-output-string port))
+         (get-output-string port)))))
 
 (define (hex-string->bytevector hex-str)
   (cond ((string-null? hex-str) (bytevector))

@@ -56,7 +56,7 @@
              (display "TESTS FAILED: ")
              (display *tests-failed*)
              (newline)))))))
-
+
 ;;;; Utility
 
 (define (print-header message)
@@ -107,7 +107,7 @@
 
   (check (catch-bytestring-error (bytestring #x100)) => 'bytestring-error)
   (check (catch-bytestring-error (bytestring "λ"))   => 'bytestring-error))
-
+
 (define (check-conversion)
   (print-header "Running conversion tests...")
 
@@ -183,7 +183,7 @@
   (check (bytestring-trim-both test-bstring never)  => test-bstring)
   (check (bytestring-trim-both test-bstring (lambda (u8) (< u8 #x70)))
    => #u8(#x72)))
-
+
 (define (check-replacement)
   (print-header "Running bytestring-replace tests...")
 
@@ -236,7 +236,7 @@
   (check (bytestring>=? test-bstring mixed-case-bstring) => #t)
   (check (bytestring>=? mixed-case-bstring test-bstring) => #f)
   (check (bytestring>=? short-bstring test-bstring)      => #f)
-
+
   (check (bytestring-ci=? test-bstring test-bstring)        => #t)
   (check (bytestring-ci=? test-bstring
                           #u8(#x6c #x6f #x72 #x65 #x6d))
@@ -288,7 +288,7 @@
    => (list test-bstring (bytevector)))
   (check (values~>list (bytestring-break test-bstring eq-r?))
    => (list (bytestring "lo") (bytestring "rem"))))
-
+
 (define (check-join-and-split)
   (define test-segments '(#u8(1) #u8(2) #u8(3)))
   (print-header "Running joining and splitting tests...")

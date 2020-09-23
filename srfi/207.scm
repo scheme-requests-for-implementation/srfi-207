@@ -59,7 +59,7 @@
 
 (define (bytestring-error message . irritants)
   (raw-bytestring-error message irritants))
-
+
 ;;;; Constructors
 
 (define (list->bytestring lis)
@@ -98,12 +98,12 @@
      (u8vector-for-each
       (lambda (b)
         (cond ((and (< b 14) (assv b backslash-codepoints)) =>
-	       (lambda (p)
-		 (write-char #\\ port)
-		 (write-char (cdr p) port)))
-	      ((and (>= b #x20) (<= b #x7e))
+               (lambda (p)
+                 (write-char #\\ port)
+                 (write-char (cdr p) port)))
+              ((and (>= b #x20) (<= b #x7e))
                (write-char (integer->char b) port))
-	      (else (raise (bytestring-error "invalid byte" b)))))
+              (else (raise (bytestring-error "invalid byte" b)))))
       bstring)
      (if (and (pair? rest) (car rest))
          (string-append "v" (get-output-string port))
@@ -129,7 +129,7 @@
      (assume (string? base64-string))
      (assume (string? digits))
      (base64-decode-bytevector (string->utf8 base64-string) digits))))
-
+
 ;;;; Selection
 
 (define (%bytestring-pad-left-or-right bstring len char-or-u8 right)
@@ -178,7 +178,7 @@
             start
             (+ 1 (bytestring-index-right bstring (negate pred))))))
         (else (bytevector))))
-
+
 ;;;; Replacement
 
 (define bytestring-replace
@@ -241,7 +241,7 @@
                                 (bytevector-u8-ref bstring2 i))))
               i
               (lp (+ i 1)))))))
-
+
 ;;; Primitive bytevector comparison functions.
 
 (define (%bytestring-compare bstring1 bstring2 res< res= res>)
@@ -300,7 +300,7 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (%bytestring-compare bstring1 bstring2 #t #t #f)))
-
+
 (define (bytestring>=? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
@@ -338,7 +338,7 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (%bytestring-compare-ci bstring1 bstring2 #f #t #t)))
-
+
 ;;;; Searching
 
 (define bytestring-index
@@ -396,7 +396,7 @@
               (lp (+ i 1))
               (values (bytevector-copy bstring 0 i)
                       (bytevector-copy bstring i)))))))
-
+
 ;;;; Joining & Splitting
 
 (define (%bytestring-join-nonempty bstrings delimiter grammar)
@@ -446,7 +446,7 @@
 
 (define (%trim-right-byte bstring byte)
   (bytestring-trim-right bstring (lambda (b) (= b byte))))
-
+
 (define (%bytestring-split/trim-outliers bstring delimiter grammar)
   (let ((trimmed (case grammar
                   ((infix strict-infix) bstring)

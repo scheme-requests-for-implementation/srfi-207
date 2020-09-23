@@ -58,8 +58,8 @@
   (irritants bytestring-error-irritants))
 
 (define (bytestring-error message . irritants)
-  (raw-bytestring-error message irritants))
-
+  (raise (raw-bytestring-error message irritants)))
+
 ;;;; Constructors
 
 (define (list->bytestring lis)
@@ -68,19 +68,46 @@
    (lambda ()
      (for-each %write-bytestring-segment lis))))
 
+(define (list->bytestring! bvec at lis)
+  (assume (bytevector? bvec))
+  (assume (and (exact-natural? at)
+               (< at (bytevector-length bvec))))
+  (bytevector-copy! bvec at (list->bytestring lis)))
+
 (define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
          ((bytevector? obj) write-bytevector)
          ((and (string? obj) (string-ascii? obj)) write-string)
          (else
-          (raise (bytestring-error "invalid bytestring element" obj))))
+          (bytestring-error "invalid bytestring element" obj)))
    obj))
 
 (define (bytestring . args)
   (if (null? args) (bytevector) (list->bytestring args)))
 
 ;;;; Conversion
+
+(define backslash-codepoints
+  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
+
+(define (bytevector->string bstring . rest)
+  (call-with-port
+   (open-output-string)
+   (lambda (port)
+     (u8vector-for-each
+      (lambda (b)
+        (cond ((and (< b 14) (assv b backslash-codepoints)) =>
+               (lambda (p)
+                 (write-char #\\ port)
+                 (write-char (cdr p) port)))
+              ((and (>= b #x20) (<= b #x7e))
+               (write-char (integer->char b) port))
+              (else (bytestring-error "invalid byte" b))))
+      bstring)
+     (if (and (pair? rest) (car rest))
+         (string-append "v" (get-output-string port))
+         (get-output-string port)))))
 
 (define (hex-string->bytevector hex-str)
   (cond ((string-null? hex-str) (bytevector))
@@ -102,7 +129,7 @@
      (assume (string? base64-string))
      (assume (string? digits))
      (base64-decode-bytevector (string->utf8 base64-string) digits))))
-
+
 ;;;; Selection
 
 (define (%bytestring-pad-left-or-right bstring len char-or-u8 right)
@@ -151,7 +178,7 @@
             start
             (+ 1 (bytestring-index-right bstring (negate pred))))))
         (else (bytevector))))
-
+
 ;;;; Replacement
 
 (define bytestring-replace
@@ -214,7 +241,7 @@
                                 (bytevector-u8-ref bstring2 i))))
               i
               (lp (+ i 1)))))))
-
+
 ;;; Primitive bytevector comparison functions.
 
 (define (%bytestring-compare bstring1 bstring2 res< res= res>)
@@ -273,7 +300,7 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (%bytestring-compare bstring1 bstring2 #t #t #f)))
-
+
 (define (bytestring>=? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))
@@ -311,7 +338,7 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (%bytestring-compare-ci bstring1 bstring2 #f #t #t)))
-
+
 ;;;; Searching
 
 (define bytestring-index
@@ -369,7 +396,7 @@
               (lp (+ i 1))
               (values (bytevector-copy bstring 0 i)
                       (bytevector-copy bstring i)))))))
-
+
 ;;;; Joining & Splitting
 
 (define (%bytestring-join-nonempty bstrings delimiter grammar)
@@ -390,14 +417,12 @@
      (assume (or (pair? bstrings) (null? bstrings)))
      (assume (bytevector? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (raise
-        (bytestring-error "bytestring-join: invalid grammar" grammar)))
+       (bytestring-error "bytestring-join: invalid grammar" grammar))
      (if (pair? bstrings)
          (%bytestring-join-nonempty bstrings delimiter grammar)
          (if (eqv? grammar 'strict-infix)
-             (raise
-              (bytestring-error
-               "bytestring-join: empty list with strict-infix grammar"))
+             (bytestring-error
+              "bytestring-join: empty list with strict-infix grammar")
              (bytevector))))))
 
 (define (%find-right bstring byte end)
@@ -419,7 +444,7 @@
 
 (define (%trim-right-byte bstring byte)
   (bytestring-trim-right bstring (lambda (b) (= b byte))))
-
+
 (define (%bytestring-split/trim-outliers bstring delimiter grammar)
   (let ((trimmed (case grammar
                   ((infix strict-infix) bstring)
@@ -434,8 +459,7 @@
      (assume (bytevector? bstring))
      (assume (u8-or-ascii-char? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (raise (bytestring-error "bytestring-split: invalid grammar"
-                                grammar)))
+       (bytestring-error "bytestring-split: invalid grammar" grammar))
      (if (%bytestring-null? bstring)
          '()
          (%bytestring-split/trim-outliers

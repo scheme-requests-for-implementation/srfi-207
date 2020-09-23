@@ -56,7 +56,7 @@
              (display "TESTS FAILED: ")
              (display *tests-failed*)
              (newline)))))))
-
+
 ;;;; Utility
 
 (define (print-header message)
@@ -95,6 +95,9 @@
 
 (define test-bstring (bytestring "lorem"))
 
+(define broken-string "ab\\
+      cde")
+
 ;;;; Constructors
 
 (define (check-constructor)
@@ -104,9 +107,23 @@
 
   (check (catch-bytestring-error (bytestring #x100)) => 'bytestring-error)
   (check (catch-bytestring-error (bytestring "λ"))   => 'bytestring-error))
-
+
 (define (check-conversion)
   (print-header "Running conversion tests...")
+
+  (check (bytevector->string #u8())            => "")
+  (check (bytevector->string test-bstring)     => "lorem")
+  (check (bytevector->string #u8(7 8 9 10 13)) => "\\a\\b\\t\\n\\r")
+  (check (bytevector->string test-bstring #t)  => "vlorem")
+
+  (check (string->bytevector "")                 => #u8())
+  (check (string->bytevector "lorem")            => test-bstring)
+  (check (string->bytevector "\\xf;\\xad;\\xe;") => #u8(#xf #xad #xe))
+  (check (string->bytevector "\\a\\b\\t\\n\\r")  => #u8(7 8 9 10 13))
+  (check (string->bytevector "a\\x1;b\\t")       => #u8(#x61 #x1 #x62 #x9))
+  (check (string->bytevector broken-string)
+   => #u8(#x61 #x62 #x63 #x64 #x65))
+
   (check (bytevector->hex-string test-bstring) => "6c6f72656d")
   (check (hex-string->bytevector "6c6f72656d") => test-bstring)
 
@@ -121,7 +138,18 @@
 
   (check (bytestring->list #u8()) => '())
   (check (bytestring->list test-bstring) => '(#x6c #x6f #x72 #x65 #x6d))
-  (check (list->bytestring (bytestring->list test-bstring)) => test-bstring))
+  (check (list->bytestring (bytestring->list test-bstring)) => test-bstring)
+
+  (let ((bvec (make-bytevector 5)))
+    (check (begin
+            (list->bytestring! bvec 0 '(#x6c #x6f #x72 #x65 #x6d))
+            bvec)
+     => test-bstring))
+  (let ((bvec (make-bytevector 9 #x20)))
+    (check (begin (list->bytestring! bvec 2 '("lo" #\r #x65 #u8(#x6d)))
+                  bvec)
+     => (bytestring "  lorem  ")))
+)
 
 (define (check-selection)
   (print-header "Running selection tests...")
@@ -155,7 +183,7 @@
   (check (bytestring-trim-both test-bstring never)  => test-bstring)
   (check (bytestring-trim-both test-bstring (lambda (u8) (< u8 #x70)))
    => #u8(#x72)))
-
+
 (define (check-replacement)
   (print-header "Running bytestring-replace tests...")
 
@@ -208,7 +236,7 @@
   (check (bytestring>=? test-bstring mixed-case-bstring) => #t)
   (check (bytestring>=? mixed-case-bstring test-bstring) => #f)
   (check (bytestring>=? short-bstring test-bstring)      => #f)
-
+
   (check (bytestring-ci=? test-bstring test-bstring)        => #t)
   (check (bytestring-ci=? test-bstring
                           #u8(#x6c #x6f #x72 #x65 #x6d))
@@ -260,7 +288,7 @@
    => (list test-bstring (bytevector)))
   (check (values~>list (bytestring-break test-bstring eq-r?))
    => (list (bytestring "lo") (bytestring "rem"))))
-
+
 (define (check-join-and-split)
   (define test-segments '(#u8(1) #u8(2) #u8(3)))
   (print-header "Running joining and splitting tests...")

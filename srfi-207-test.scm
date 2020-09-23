@@ -138,7 +138,18 @@
 
   (check (bytestring->list #u8()) => '())
   (check (bytestring->list test-bstring) => '(#x6c #x6f #x72 #x65 #x6d))
-  (check (list->bytestring (bytestring->list test-bstring)) => test-bstring))
+  (check (list->bytestring (bytestring->list test-bstring)) => test-bstring)
+
+  (let ((bvec (make-bytevector 5)))
+    (check (begin
+            (list->bytestring! bvec 0 '(#x6c #x6f #x72 #x65 #x6d))
+            bvec)
+     => test-bstring))
+  (let ((bvec (make-bytevector 9 #x20)))
+    (check (begin (list->bytestring! bvec 2 '("lo" #\r #x65 #u8(#x6d)))
+                  bvec)
+     => (bytestring "  lorem  ")))
+)
 
 (define (check-selection)
   (print-header "Running selection tests...")

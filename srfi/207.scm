@@ -68,6 +68,12 @@
    (lambda ()
      (for-each %write-bytestring-segment lis))))
 
+(define (list->bytestring! bvec at lis)
+  (assume (bytevector? bvec))
+  (assume (and (exact-natural? at)
+               (< at (bytevector-length bvec))))
+  (bytevector-copy! bvec at (list->bytestring lis)))
+
 (define (%write-bytestring-segment obj)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)

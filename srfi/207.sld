@@ -55,6 +55,7 @@
   (export bytestring list->bytestring bytevector->hex-string bytestring->list
           bytevector->string
           string->bytevector
+          list->bytestring!
           hex-string->bytevector bytevector->base64 base64->bytevector
           bytestring-pad bytestring-pad-right bytestring-trim
           bytestring-trim-right bytestring-trim-both bytestring-replace

@@ -58,7 +58,7 @@
   (irritants bytestring-error-irritants))
 
 (define (bytestring-error message . irritants)
-  (raw-bytestring-error message irritants))
+  (raise (raw-bytestring-error message irritants)))
 
 ;;;; Constructors
 
@@ -80,7 +80,7 @@
          ((bytevector? obj) write-bytevector)
          ((and (string? obj) (string-ascii? obj)) write-string)
          (else
-          (raise (bytestring-error "invalid bytestring element" obj))))
+          (bytestring-error "invalid bytestring element" obj)))
    obj))
 
 (define (bytestring . args)
@@ -103,7 +103,7 @@
                  (write-char (cdr p) port)))
               ((and (>= b #x20) (<= b #x7e))
                (write-char (integer->char b) port))
-              (else (raise (bytestring-error "invalid byte" b)))))
+              (else (bytestring-error "invalid byte" b))))
       bstring)
      (if (and (pair? rest) (car rest))
          (string-append "v" (get-output-string port))
@@ -417,14 +417,12 @@
      (assume (or (pair? bstrings) (null? bstrings)))
      (assume (bytevector? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (raise
-        (bytestring-error "bytestring-join: invalid grammar" grammar)))
+       (bytestring-error "bytestring-join: invalid grammar" grammar))
      (if (pair? bstrings)
          (%bytestring-join-nonempty bstrings delimiter grammar)
          (if (eqv? grammar 'strict-infix)
-             (raise
-              (bytestring-error
-               "bytestring-join: empty list with strict-infix grammar"))
+             (bytestring-error
+              "bytestring-join: empty list with strict-infix grammar")
              (bytevector))))))
 
 (define (%find-right bstring byte end)
@@ -461,8 +459,7 @@
      (assume (bytevector? bstring))
      (assume (u8-or-ascii-char? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (raise (bytestring-error "bytestring-split: invalid grammar"
-                                grammar)))
+       (bytestring-error "bytestring-split: invalid grammar" grammar))
      (if (%bytestring-null? bstring)
          '()
          (%bytestring-split/trim-outliers

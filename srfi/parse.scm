@@ -6,7 +6,7 @@
           ((char=? c #\\)
            (let ((c* (read-char)))
              (cond ((eof-object? c*)
-                    (raise (bytestring-error "incomplete escape sequence")))
+                    (bytestring-error "incomplete escape sequence"))
                    ((escape c*) =>
                     (lambda (b)
                       (write-u8 b)
@@ -15,7 +15,7 @@
           ((and (char>=? c #\space) (char<=? c #\~))
            (write-u8 (char->integer c))
            (lp (read-char)))
-          (else (raise (bytestring-error "invalid character" c))))))
+          (else (bytestring-error "invalid character" c)))))
 
 (define (escape c)
   (case c
@@ -32,28 +32,27 @@
     ((#\newline)
      (skip-horizontal-whitespace)
      #f)                              ; skip
-    (else (raise (bytestring-error "invalid escaped character" c)))))
+    (else (bytestring-error "invalid escaped character" c))))
 
 (define (parse-hex)
   (let* ((hex1 (read-char))
          (hex2 (read-char)))
     (when (or (eof-object? hex1) (eof-object? hex2))
-      (raise (bytestring-error "incomplete hexadecimal sequence")))
+      (bytestring-error "incomplete hexadecimal sequence"))
     (if (char=? hex2 #\;)
         (or (string->number (string hex1) 16)
-            (raise (bytestring-error "invalid hexadecimal sequence")))
+            (bytestring-error "invalid hexadecimal sequence"))
         (let ((term (read-char)))
           (if (eqv? term #\;)
               (or (string->number (string hex1 hex2) 16)
-                  (raise (bytestring-error "invalid hexadecimal sequence")))
-              (raise
-               (bytestring-error
-                "overlong or unterminated hexadecimal sequence")))))))
+                  (bytestring-error "invalid hexadecimal sequence"))
+              (bytestring-error
+               "overlong or unterminated hexadecimal sequence"))))))
 
 (define (skip-line-break)
   (let ((c (read-char)))
     (unless (eqv? #\newline c)
-      (raise (bytestring-error "expected newline" c))))
+      (bytestring-error "expected newline" c)))
   (skip-horizontal-whitespace))
 
 (define (skip-horizontal-whitespace)

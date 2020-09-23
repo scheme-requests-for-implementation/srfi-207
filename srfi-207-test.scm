@@ -95,6 +95,9 @@
 
 (define test-bstring (bytestring "lorem"))
 
+(define broken-string "ab\\
+      cde")
+
 ;;;; Constructors
 
 (define (check-constructor)
@@ -107,6 +110,20 @@
 
 (define (check-conversion)
   (print-header "Running conversion tests...")
+
+  (check (bytevector->string #u8())            => "")
+  (check (bytevector->string test-bstring)     => "lorem")
+  (check (bytevector->string #u8(7 8 9 10 13)) => "\\a\\b\\t\\n\\r")
+  (check (bytevector->string test-bstring #t)  => "vlorem")
+
+  (check (string->bytevector "")                 => #u8())
+  (check (string->bytevector "lorem")            => test-bstring)
+  (check (string->bytevector "\\xf;\\xad;\\xe;") => #u8(#xf #xad #xe))
+  (check (string->bytevector "\\a\\b\\t\\n\\r")  => #u8(7 8 9 10 13))
+  (check (string->bytevector "a\\x1;b\\t")       => #u8(#x61 #x1 #x62 #x9))
+  (check (string->bytevector broken-string)
+   => #u8(#x61 #x62 #x63 #x64 #x65))
+
   (check (bytevector->hex-string test-bstring) => "6c6f72656d")
   (check (hex-string->bytevector "6c6f72656d") => test-bstring)
 

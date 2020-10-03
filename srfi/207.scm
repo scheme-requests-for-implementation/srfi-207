@@ -139,6 +139,7 @@
                     (integer->hex-string (bytevector-u8-ref bv i))))))
 
 (define (hex-string->bytestring hex-str)
+  (assume (string? hex-str))
   (cond ((string-null? hex-str) (bytevector))
         ((string->number hex-str 16) => integer->bytevector)
         (else #f)))

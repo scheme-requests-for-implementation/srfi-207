@@ -7,13 +7,21 @@
 
   (cond-expand
     ((library (scheme bytevector))
-      (import (only (scheme bytevector) bytevector=? bytevector->u8-list))
+      (import (only (scheme bytevector) bytevector=? bytevector->u8-list
+                                        u8-list->bytevector))
       (begin
        (define (bytestring->list bstring)
          (bytevector->u8-list bstring))))
     (else
      (begin
       (define bytevector=? equal?)
+      (define (u8-list->bytevector lis)
+        (let* ((len (length lis))
+               (bvec (make-bytevector len)))
+          (let lp ((i 0) (lis lis))
+            (cond ((null? lis) bvec)
+                  (else (bytevector-u8-set! bvec i (car lis))
+                        (lp (+ i 1) (cdr lis)))))))
       (define (bytestring->list bstring)
         (assume (bytevector? bstring))
         (list-tabulate (bytevector-length bstring)

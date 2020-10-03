@@ -123,26 +123,20 @@
                      (lambda (n) (truncate-quotient n 256))
                      n))))
 
-;; Big-endian conversion, guaranteed padded to even length.
 (define (integer->hex-string n)
-  (let* ((res (number->string n 16))
-         (len (string-length res)))
-    (if (even? len)
-        res
-        (string-append "0" res))))
+  (cond ((number->string n 16) =>
+         (lambda (res)
+           (if (even? (string-length res))
+               res
+               (string-append "0" res))))
+        (else (bytestring-error "not an integer" n))))
 
-;; Exported.
 (define (bytestring->hex-string bv)
-  (let ((len (bytevector-length bv)))
-    (call-with-port
-     (open-output-string)
-     (lambda (out)
-       (let lp ((i 0))
-         (cond ((>= i len) (get-output-string out))
-               (else
-                (write-string (integer->hex-string (bytevector-u8-ref bv i))
-                              out)
-                (lp (+ i 1)))))))))
+  (assume (bytevector? bv))
+  (string-concatenate
+   (list-tabulate (bytevector-length bv)
+                  (lambda (i)
+                    (integer->hex-string (bytevector-u8-ref bv i))))))
 
 (define (hex-string->bytestring hex-str)
   (cond ((string-null? hex-str) (bytevector))

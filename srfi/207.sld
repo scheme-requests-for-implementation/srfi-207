@@ -52,11 +52,11 @@
                    (lp (+ i 1)))))))))
     (else (import (only (srfi 160 u8) u8vector-for-each))))
 
-  (export bytestring list->bytestring bytevector->hex-string bytestring->list
-          bytevector->string
-          string->bytevector
+  (export bytestring list->bytestring bytestring->hex-string bytestring->list
+          bytestring->string
+          string->bytestring
           list->bytestring!
-          hex-string->bytevector bytevector->base64 base64->bytevector
+          hex-string->bytestring bytestring->base64 base64->bytestring
           bytestring-pad bytestring-pad-right bytestring-trim
           bytestring-trim-right bytestring-trim-both bytestring-replace
           bytestring-index bytestring-index-right bytestring-break

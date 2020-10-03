@@ -51,7 +51,7 @@
         (string-append "0" res))))
 
 ;; Exported.
-(define (bytevector->hex-string bv)
+(define (bytestring->hex-string bv)
   (let ((len (bytevector-length bv)))
     (call-with-port
      (open-output-string)

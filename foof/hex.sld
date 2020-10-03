@@ -5,6 +5,6 @@
           (srfi 145)
           (srfi 151))
 
-  (export integer->bytevector bytevector->hex-string)
+  (export integer->bytevector bytestring->hex-string)
 
   (include "hex.scm"))

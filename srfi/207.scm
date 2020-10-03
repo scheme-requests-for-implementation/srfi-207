@@ -91,7 +91,7 @@
 (define backslash-codepoints
   '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
 
-(define (bytevector->string bstring . rest)
+(define (bytestring->string bstring . rest)
   (call-with-port
    (open-output-string)
    (lambda (port)
@@ -109,22 +109,22 @@
          (string-append "v" (get-output-string port))
          (get-output-string port)))))
 
-(define (hex-string->bytevector hex-str)
+(define (hex-string->bytestring hex-str)
   (cond ((string-null? hex-str) (bytevector))
         ((string->number hex-str 16) => integer->bytevector)
         (else #f)))
 
-(define bytevector->base64
+(define bytestring->base64
   (case-lambda
-    ((bvec) (bytevector->base64 bvec "+/"))
+    ((bvec) (bytestring->base64 bvec "+/"))
     ((bvec digits)
      (assume (bytevector? bvec))
      (assume (string? digits))
      (utf8->string (base64-encode-bytevector bvec digits)))))
 
-(define base64->bytevector
+(define base64->bytestring
   (case-lambda
-    ((base64-string) (base64->bytevector base64-string "+/"))
+    ((base64-string) (base64->bytestring base64-string "+/"))
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))

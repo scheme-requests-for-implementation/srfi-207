@@ -3,6 +3,7 @@
           (scheme case-lambda)
           (srfi 1)
           (srfi 151)
+          (bytestring error)
           (foof base64))
 
   (cond-expand

@@ -1,6 +1,7 @@
 (define-library (foof base64)
   (import (scheme base)
-          (srfi 151))
+          (srfi 151)
+          (bytestring error))
 
   (cond-expand
     ((library (srfi 133))

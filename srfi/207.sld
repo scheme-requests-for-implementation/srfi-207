@@ -32,7 +32,10 @@
      (import (srfi 145)))
     (else
      (begin
-      (define (assume _) #t))))
+      (define-syntax assume
+        (syntax-rules ()
+          ((_ expr . _)
+           (or expr (car 0))))))))
 
   (cond-expand
     ((library (srfi 152))

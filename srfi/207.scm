@@ -109,6 +109,41 @@
          (string-append "v" (get-output-string port))
          (get-output-string port)))))
 
+;;;; Hex string conversion
+
+;; Convert an unsigned integer n to a bytevector representing
+;; the base-256 big-endian form (the zero index holds the MSB).
+(define (integer->bytevector n)
+  (assume (and (integer? n) (not (negative? n))))
+  (if (zero? n)
+      (make-bytevector 1 0)
+      (u8-list->bytevector
+       (unfold-right zero?
+                     (lambda (n) (truncate-remainder n 256))
+                     (lambda (n) (truncate-quotient n 256))
+                     n))))
+
+;; Big-endian conversion, guaranteed padded to even length.
+(define (integer->hex-string n)
+  (let* ((res (number->string n 16))
+         (len (string-length res)))
+    (if (even? len)
+        res
+        (string-append "0" res))))
+
+;; Exported.
+(define (bytestring->hex-string bv)
+  (let ((len (bytevector-length bv)))
+    (call-with-port
+     (open-output-string)
+     (lambda (out)
+       (let lp ((i 0))
+         (cond ((>= i len) (get-output-string out))
+               (else
+                (write-string (integer->hex-string (bytevector-u8-ref bv i))
+                              out)
+                (lp (+ i 1)))))))))
+
 (define (hex-string->bytestring hex-str)
   (cond ((string-null? hex-str) (bytevector))
         ((string->number hex-str 16) => integer->bytevector)

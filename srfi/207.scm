@@ -147,7 +147,7 @@
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))
-     (base64-decode-bytevector (string->utf8 base64-string) digits))))
+     (decode-base64-string base64-string digits))))
 
 ;;;; Selection
 

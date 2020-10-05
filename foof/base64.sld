@@ -1,5 +1,6 @@
 (define-library (foof base64)
   (import (scheme base)
+          (only (scheme char) char-whitespace?)
           (srfi 151)
           (bytestring error))
 
@@ -15,6 +16,6 @@
                   (else (vector-set! res i (f i))
                         (lp (+ i 1))))))))))
 
-  (export base64-encode-bytevector base64-decode-bytevector)
+  (export base64-encode-bytevector decode-base64-string)
 
   (include "base64.scm"))

@@ -76,7 +76,7 @@
         (let ((u8vec (make-bytevector len)))
           (let lp ((i 0) (seed seed))
             (unless (= i len)
-              (let-values (((b seed*) (proc i seed)))
+              (let-values (((b seed*) (f i seed)))
                 (bytevector-u8-set! u8vec i b)
                 (lp (+ i 1) seed*))))
           u8vec))))

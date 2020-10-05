@@ -164,6 +164,8 @@
   (check (base64->bytestring "AQ==")                   => #u8(1))
   (check (base64->bytestring "")                       => #u8())
   (check (base64->bytestring "\n\n\n==\t\r\n")         => #u8())
+  (check (catch-bytestring-error
+          (base64->bytestring "bG9@frob"))             => 'bytestring-error)
 
   (check (bytestring->list #u8()) => '())
   (check (bytestring->list test-bstring) => '(#x6c #x6f #x72 #x65 #x6d))

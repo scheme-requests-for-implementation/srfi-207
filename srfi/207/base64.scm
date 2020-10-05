@@ -122,8 +122,7 @@
          (unless (outside-char? b3)
            (write-u8 (bitwise-ior (arithmetic-shift (bit-field b2 0 4) 4)
                                   (bit-field b3 2 6))
-                     out))))
-  (get-output-bytevector out))
+                     out)))))
 
 ;;;; Encoding
 

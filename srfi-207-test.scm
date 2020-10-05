@@ -98,6 +98,18 @@
 (define broken-string "ab\\
       cde")
 
+(define homer
+  (bytestring "The Man, O Muse, informe, who many a way / \
+               Wound in his wisedome to his wished stay;"))
+
+(define homer64
+  "VGhlIE1hbiwgTyBNdXNlLCBpbmZvcm1lLCB3aG8gbWFueSBhIHdheSAvIFdvd\
+   W5kIGluIGhpcyB3aXNlZG9tZSB0byBoaXMgd2lzaGVkIHN0YXk7")
+
+(define homer64-w
+  "VGhlIE1hb iwgTyBNdXNlL CBpbmZvcm1lL\nCB3aG8gbWF\tueSBhIH\rdheSAvIFdvd\
+   W5kIGluI   GhpcyB    3aXNlZ\t\t\nG9tZSB0b    yBoaXMgd\t2lzaGVkIHN0YXk7")
+
 ;;;; Constructors
 
 (define (check-constructor)
@@ -132,9 +144,12 @@
   (check (bytestring->base64 test-bstring)             => "bG9yZW0=")
   (check (bytestring->base64 #u8(#xff #xef #xff))      => "/+//")
   (check (bytestring->base64 #u8(#xff #xef #xff) "*@") => "@*@@")
+  (check (equal? (bytestring->base64 homer) homer64)   => #t)
   (check (base64->bytestring "bG9yZW0=")               => test-bstring)
   (check (base64->bytestring "/+//")                   => #u8(#xff #xef #xff))
   (check (base64->bytestring "@*@@" "*@")              => #u8(#xff #xef #xff))
+  (check (equal? (base64->bytestring homer64) homer)   => #t)
+  (check (equal? (base64->bytestring homer64-w) homer) => #t)
 
   (check (bytestring->list #u8()) => '())
   (check (bytestring->list test-bstring) => '(#x6c #x6f #x72 #x65 #x6d))

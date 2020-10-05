@@ -48,9 +48,9 @@
         (extra-2 (char->integer (string-ref digits 1))))
     (vector-unfold
      (lambda (i)
-       (cond ((and (>= i 48) (< i 58))  (+ i 4))   ; numbers
-             ((and (>= i 65) (< i 91))  (- i 65))  ; upper-case
-             ((and (>= i 97) (< i 123)) (- i 71))  ; lower-case
+       (cond ((ascii-number? i) (+ i 4))
+             ((ascii-upper? i) (- i 65))
+             ((ascii-lower? i) (- i 71))
              ((= i extra-1) 62)
              ((= i extra-2) 63)
              ((= i #x3d) pad-char)                 ; '='

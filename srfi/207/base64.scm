@@ -37,7 +37,7 @@
 (define (ascii-lower? n) (and (>= n 97) (< n 123)))
 
 (define (base64-char? c digits)
-  (or (memv c digits)
+  (or (string-any (lambda (d) (char=? c d)) digits)
       (let ((n (char->integer c)))
         (or (ascii-number? n)
             (ascii-upper? n)
@@ -74,41 +74,42 @@
 ;;;; Decoding
 
 (define (decode-base64-string src digits)
-  (let ((len (string-length src))
-        (table (make-base64-decode-table digits))
-        (ds (string->list digits)))
+  (let ((table (make-base64-decode-table digits)))
     (call-with-port
      (open-output-bytevector)
      (lambda (out)
-       (let lp ((i 0) (b1 outside-char) (b2 outside-char) (b3 outside-char))
-         (if (= i len)
-             (decode-base64-trailing out b1 b2 b3)
-             (let* ((c (string-ref src i))
-                    (b (base64-decode-u8 table (char->integer c))))
-               (cond ((pad-char? b) (decode-base64-trailing out b1 b2 b3))
-                     ((char-whitespace? c) (lp (+ i 1) b1 b2 b3))
-                     ((not (base64-char? c ds))
-                      (bytestring-error "invalid character in base64 string"
-                                        c
-                                        src))
-                     ((outside-char? b1) (lp (+ i 1) b b2 b3))
-                     ((outside-char? b2) (lp (+ i 1) b1 b b3))
-                     ((outside-char? b3) (lp (+ i 1) b1 b2 b))
-                     (else
-                      (write-u8 (bitwise-ior (arithmetic-shift b1 2)
-                                             (bit-field b2 4 6))
-                                out)
-                      (write-u8 (bitwise-ior
-                                 (arithmetic-shift (bit-field b2 0 4) 4)
-                                 (bit-field b3 2 6))
-                                out)
-                      (write-u8 (bitwise-ior
-                                 (arithmetic-shift (bit-field b3 0 2) 6)
-                                 b)
-                                out)
-                      (lp (+ i 1) outside-char
-                                  outside-char
-                                  outside-char))))))))))
+       (decode-base64-to-port src out table digits)
+       (get-output-bytevector out)))))
+
+(define (decode-base64-to-port src port table digits)
+  (let ((len (string-length src)))
+    (let lp ((i 0) (b1 outside-char) (b2 outside-char) (b3 outside-char))
+      (if (= i len)
+          (decode-base64-trailing port b1 b2 b3)
+          (let* ((c (string-ref src i))
+                 (b (base64-decode-u8 table (char->integer c))))
+            (cond ((pad-char? b) (decode-base64-trailing port b1 b2 b3))
+                  ((char-whitespace? c) (lp (+ i 1) b1 b2 b3))
+                  ((not (base64-char? c digits))
+                   (bytestring-error "invalid character in base64 string"
+                                     c
+                                     src))
+                  ((outside-char? b1) (lp (+ i 1) b b2 b3))
+                  ((outside-char? b2) (lp (+ i 1) b1 b b3))
+                  ((outside-char? b3) (lp (+ i 1) b1 b2 b))
+                  (else
+                   (write-u8 (bitwise-ior (arithmetic-shift b1 2)
+                                          (bit-field b2 4 6))
+                             port)
+                   (write-u8 (bitwise-ior
+                              (arithmetic-shift (bit-field b2 0 4) 4)
+                              (bit-field b3 2 6))
+                             port)
+                   (write-u8 (bitwise-ior
+                              (arithmetic-shift (bit-field b3 0 2) 6)
+                              b)
+                             port)
+                   (lp (+ i 1) outside-char outside-char outside-char))))))))
 
 ;; Flush any trailing bits accumulated in the decode loop to the
 ;; bytevector port `out', then return the finalized bytestring.

@@ -36,13 +36,6 @@
 (define (ascii-upper? n) (and (>= n 65) (< n 91)))
 (define (ascii-lower? n) (and (>= n 97) (< n 123)))
 
-(define (base64-char? c digits)
-  (or (string-any (lambda (d) (char=? c d)) digits)
-      (let ((n (char->integer c)))
-        (or (ascii-number? n)
-            (ascii-upper? n)
-            (ascii-lower? n)))))
-
 (define (make-base64-decode-table digits)
   (let ((extra-1 (char->integer (string-ref digits 0)))
         (extra-2 (char->integer (string-ref digits 1))))
@@ -78,10 +71,10 @@
     (call-with-port
      (open-output-bytevector)
      (lambda (out)
-       (decode-base64-to-port src out table digits)
+       (decode-base64-to-port src out table)
        (get-output-bytevector out)))))
 
-(define (decode-base64-to-port src port table digits)
+(define (decode-base64-to-port src port table)
   (let ((len (string-length src)))
     (let lp ((i 0) (b1 outside-char) (b2 outside-char) (b3 outside-char))
       (if (= i len)
@@ -90,7 +83,7 @@
                  (b (base64-decode-u8 table (char->integer c))))
             (cond ((pad-char? b) (decode-base64-trailing port b1 b2 b3))
                   ((char-whitespace? c) (lp (+ i 1) b1 b2 b3))
-                  ((not (base64-char? c digits))
+                  ((outside-char? b)
                    (bytestring-error "invalid character in base64 string"
                                      c
                                      src))

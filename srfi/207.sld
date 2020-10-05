@@ -3,8 +3,7 @@
           (scheme case-lambda)
           (only (scheme char) char-whitespace?)
           (srfi 1)
-          (srfi 151)
-          (bytestring error))
+          (srfi 151))
 
   (cond-expand
     ((library (scheme bytevector))
@@ -91,6 +90,7 @@
           bytestring-join bytestring-split
           write-bytestring)
 
+  (include "207/error.scm")
   (include "207/parse.scm")
   (include "207/base64.scm")
   (include "207/bytestrings-impl.scm"))

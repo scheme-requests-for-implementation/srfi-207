@@ -138,6 +138,15 @@
 
   (check (bytestring->hex-string test-bstring) => "6c6f72656d")
   (check (hex-string->bytestring "6c6f72656d") => test-bstring)
+  (check (catch-bytestring-error
+          (hex-string->bytestring "c6f72656d"))
+   => 'bytestring-error)
+  (check (catch-bytestring-error
+          (hex-string->bytestring "6czf72656d"))
+   => 'bytestring-error)
+  (check (equal? (hex-string->bytestring (bytestring->hex-string homer))
+                 homer)
+   => #t)
 
   (check (hex-string->bytestring (bytestring->hex-string #u8())) => #u8())
 

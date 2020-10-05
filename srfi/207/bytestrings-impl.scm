@@ -127,11 +127,12 @@
                   (lambda (i)
                     (integer->hex-string (bytevector-u8-ref bv i))))))
 
+;; TODO: Unfold a bytevector; don't use string->number.
 (define (hex-string->bytestring hex-str)
   (assume (string? hex-str))
   (cond ((string-null? hex-str) (bytevector))
         ((string->number hex-str 16) => integer->bytevector)
-        (else #f)))
+        (else (bytestring-error "invalid hexadecimal string" hex-str))))
 
 (define bytestring->base64
   (case-lambda

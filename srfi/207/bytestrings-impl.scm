@@ -42,20 +42,15 @@
   (lambda (obj)
     (not (pred obj))))
 
-(define-syntax with-output-to-bytevector
-  (syntax-rules ()
-    ((_ thunk)
-     (parameterize ((current-output-port (open-output-bytevector)))
-       (thunk)
-       (get-output-bytevector (current-output-port))))))
-
 ;;;; Constructors
 
 (define (list->bytestring lis)
   (assume (or (pair? lis) (null? lis)))
-  (with-output-to-bytevector
-   (lambda ()
-     (for-each %write-bytestring-segment lis))))
+  (call-with-port
+   (open-output-bytevector)
+   (lambda (out)
+     (for-each (lambda (seg) (%write-bytestring-segment seg out)) lis)
+     (get-output-bytevector out))))
 
 (define (list->bytestring! bvec at lis)
   (assume (bytevector? bvec))
@@ -63,14 +58,15 @@
                (< at (bytevector-length bvec))))
   (bytevector-copy! bvec at (list->bytestring lis)))
 
-(define (%write-bytestring-segment obj)
+(define (%write-bytestring-segment obj port)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
          ((bytevector? obj) write-bytevector)
          ((and (string? obj) (string-ascii? obj)) write-string)
          (else
           (bytestring-error "invalid bytestring element" obj)))
-   obj))
+   obj
+   port))
 
 (define (bytestring . args)
   (if (null? args) (bytevector) (list->bytestring args)))
@@ -420,15 +416,17 @@
 ;;;; Joining & Splitting
 
 (define (%bytestring-join-nonempty bstrings delimiter grammar)
-  (with-output-to-bytevector
-   (lambda ()
-     (when (eqv? grammar 'prefix) (write-bytevector delimiter))
-     (write-bytevector (car bstrings))
+  (call-with-port
+   (open-output-bytevector)
+   (lambda (out)
+     (when (eqv? grammar 'prefix) (write-bytevector delimiter out))
+     (write-bytevector (car bstrings) out)
      (for-each (lambda (bstr)
-                 (write-bytevector delimiter)
-                 (write-bytevector bstr))
+                 (write-bytevector delimiter out)
+                 (write-bytevector bstr out))
                (cdr bstrings))
-     (when (eqv? grammar 'suffix) (write-bytevector delimiter)))))
+     (when (eqv? grammar 'suffix) (write-bytevector delimiter out))
+     (get-output-bytevector out))))
 
 (define bytestring-join
   (case-lambda
@@ -491,5 +489,4 @@
 
 (define (write-bytestring port . args)
   (assume (binary-port? port))
-  (parameterize ((current-output-port port))
-    (for-each %write-bytestring-segment args)))
+  (for-each (lambda (seg) (%write-bytestring-segment seg port)) args))

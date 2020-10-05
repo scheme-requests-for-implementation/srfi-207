@@ -61,7 +61,7 @@
       (read-char)
       (lp))))
 
-(define (string->bytevector s)
+(define (string->bytestring s)
   (parameterize ((current-input-port (open-input-string s))
                  (current-output-port (open-output-bytevector)))
     (parse)

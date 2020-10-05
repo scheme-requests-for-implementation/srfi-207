@@ -42,31 +42,15 @@
   (lambda (obj)
     (not (pred obj))))
 
-(define-syntax with-output-to-bytevector
-  (syntax-rules ()
-    ((_ thunk)
-     (parameterize ((current-output-port (open-output-bytevector)))
-       (thunk)
-       (get-output-bytevector (current-output-port))))))
-
-;;;; Error type
-
-(define-record-type <bytestring-error>
-  (raw-bytestring-error message irritants)
-  bytestring-error?
-  (message bytestring-error-message)
-  (irritants bytestring-error-irritants))
-
-(define (bytestring-error message . irritants)
-  (raise (raw-bytestring-error message irritants)))
-
 ;;;; Constructors
 
 (define (list->bytestring lis)
   (assume (or (pair? lis) (null? lis)))
-  (with-output-to-bytevector
-   (lambda ()
-     (for-each %write-bytestring-segment lis))))
+  (call-with-port
+   (open-output-bytevector)
+   (lambda (out)
+     (for-each (lambda (seg) (%write-bytestring-segment seg out)) lis)
+     (get-output-bytevector out))))
 
 (define (list->bytestring! bvec at lis)
   (assume (bytevector? bvec))
@@ -74,14 +58,15 @@
                (< at (bytevector-length bvec))))
   (bytevector-copy! bvec at (list->bytestring lis)))
 
-(define (%write-bytestring-segment obj)
+(define (%write-bytestring-segment obj port)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<? obj #\delete)) write-char)
          ((bytevector? obj) write-bytevector)
          ((and (string? obj) (string-ascii? obj)) write-string)
          (else
           (bytestring-error "invalid bytestring element" obj)))
-   obj))
+   obj
+   port))
 
 (define (bytestring . args)
   (if (null? args) (bytevector) (list->bytestring args)))
@@ -91,7 +76,7 @@
 (define backslash-codepoints
   '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
 
-(define (bytevector->string bstring . rest)
+(define (bytestring->string bstring . rest)
   (call-with-port
    (open-output-string)
    (lambda (port)
@@ -109,26 +94,66 @@
          (string-append "v" (get-output-string port))
          (get-output-string port)))))
 
-(define (hex-string->bytevector hex-str)
-  (cond ((string-null? hex-str) (bytevector))
-        ((string->number hex-str 16) => integer->bytevector)
-        (else #f)))
+;;;; Hex string conversion
 
-(define bytevector->base64
+;; Convert an unsigned integer n to a bytevector representing
+;; the base-256 big-endian form (the zero index holds the MSB).
+(define (integer->bytevector n)
+  (assume (and (integer? n) (not (negative? n))))
+  (if (zero? n)
+      (make-bytevector 1 0)
+      (u8-list->bytevector
+       (unfold-right zero?
+                     (lambda (n) (truncate-remainder n 256))
+                     (lambda (n) (truncate-quotient n 256))
+                     n))))
+
+(define (integer->hex-string n)
+  (cond ((number->string n 16) =>
+         (lambda (res)
+           (if (even? (string-length res))
+               res
+               (string-append "0" res))))
+        (else (bytestring-error "not an integer" n))))
+
+(define (bytestring->hex-string bv)
+  (assume (bytevector? bv))
+  (string-concatenate
+   (list-tabulate (bytevector-length bv)
+                  (lambda (i)
+                    (integer->hex-string (bytevector-u8-ref bv i))))))
+
+(define (hex-string->bytestring hex-str)
+  (assume (string? hex-str))
+  (let ((len (string-length hex-str)))
+    (unless (even? len)
+      (bytestring-error "incomplete hexadecimal string" hex-str))
+    (u8vector-unfold
+     (lambda (_ i)
+       (let* ((end (+ i 2))
+              (s (substring hex-str i end))
+              (n (string->number s 16)))
+         (if n
+             (values n end)
+             (bytestring-error "invalid hexadecimal sequence" s))))
+     (truncate-quotient len 2)
+     0)))
+
+(define bytestring->base64
   (case-lambda
-    ((bvec) (bytevector->base64 bvec "+/"))
+    ((bvec) (bytestring->base64 bvec "+/"))
     ((bvec digits)
      (assume (bytevector? bvec))
      (assume (string? digits))
      (utf8->string (base64-encode-bytevector bvec digits)))))
 
-(define base64->bytevector
+(define base64->bytestring
   (case-lambda
-    ((base64-string) (base64->bytevector base64-string "+/"))
+    ((base64-string) (base64->bytestring base64-string "+/"))
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))
-     (base64-decode-bytevector (string->utf8 base64-string) digits))))
+     (decode-base64-string base64-string digits))))
 
 ;;;; Selection
 
@@ -400,15 +425,17 @@
 ;;;; Joining & Splitting
 
 (define (%bytestring-join-nonempty bstrings delimiter grammar)
-  (with-output-to-bytevector
-   (lambda ()
-     (when (eqv? grammar 'prefix) (write-bytevector delimiter))
-     (write-bytevector (car bstrings))
+  (call-with-port
+   (open-output-bytevector)
+   (lambda (out)
+     (when (eqv? grammar 'prefix) (write-bytevector delimiter out))
+     (write-bytevector (car bstrings) out)
      (for-each (lambda (bstr)
-                 (write-bytevector delimiter)
-                 (write-bytevector bstr))
+                 (write-bytevector delimiter out)
+                 (write-bytevector bstr out))
                (cdr bstrings))
-     (when (eqv? grammar 'suffix) (write-bytevector delimiter)))))
+     (when (eqv? grammar 'suffix) (write-bytevector delimiter out))
+     (get-output-bytevector out))))
 
 (define bytestring-join
   (case-lambda
@@ -471,5 +498,4 @@
 
 (define (write-bytestring port . args)
   (assume (binary-port? port))
-  (parameterize ((current-output-port port))
-    (for-each %write-bytestring-segment args)))
+  (for-each (lambda (seg) (%write-bytestring-segment seg port)) args))

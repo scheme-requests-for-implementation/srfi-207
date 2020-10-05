@@ -116,17 +116,25 @@
 
 <h3>Conversion</h3>
 
-<p><code>(bytevector-&gt;string</code>&nbsp;<var>bytestring</var> [ <var>v</var> ]<code>)</code></p>
-<p>Convert a bytevector to the corresponding string in the external format described in this SRFI. If the <var>v</var> argument is present and true, a <code>#\v</code> is prefixed to the string for compatibility with R6RS.</p><code>(string-&gt;bytevector</code>&nbsp;<var>string</var><code>)</code>
-<p>Convert a string in the external format described in this SRFI to the corresponding bytevector. If the first character is a <code>#\v</code>, it is ignored.</p>
+<p><code>(bytestring-&gt;string</code>&nbsp;<var>bytestring</var> [ <var>v</var> ]<code>)</code></p>
+<p>Convert a bytevector to the corresponding string in the external format described in this SRFI. If the <var>v</var> argument is present and true, a <code>#\v</code> is prefixed to the string for compatibility with R6RS.</p>
+<code>(string-&gt;bytestring</code>&nbsp;<var>string</var><code>)</code>
+<p>Convert a string in the external format described in this SRFI to the corresponding bytevector. If the first character is a <code>#\v</code>, it is ignored.
+If <var>string</var> is not in the external format, an error satisfying <code>bytestring-error?</code> is raised.</p>
 
-<p><code>(bytevector-&gt;hex-string</code>&nbsp;<var>bytestring</var><code>)</code><br>
-<code>(hex-string-&gt;bytevector</code>&nbsp;<var>string</var><code>)</code></p>
-<p>Convert between a bytevector and a string containing pairs of hexadecimal digits.</p>
+<p><code>(bytestring-&gt;hex-string</code>&nbsp;<var>bytestring</var><code>)</code><br>
+<code>(hex-string-&gt;bytestring</code>&nbsp;<var>string</var><code>)</code></p>
+<p>Convert between a bytevector and a string containing pairs of hexadecimal digits.
+If <var>string</var> is not pairs of hexadecimal digits, an error satisfying <code>bytestring-error?</code> is raised.</p>
 
-<p><code>(bytevector-&gt;base64</code>&nbsp;<var>bytevector</var> [<var>digits</var>]<code>)</code><br>
-<code>(base64-&gt;bytevector</code>&nbsp;<var>string</var> [<var>digits</var>]<code>)</code></p>
-<p>Convert between a bytevector and its base-64 encoding as a string. The 64 digits are represented by the characters 0-9, A-Z, a-z, and the symbols + and /. However, there are different variants of base-64 encoding which use different representations of the 62nd and 63rd digit. If the optional argument <var>digits</var> (a two-character string) is provided, those two characters will be used as the 62nd and 63rd digit instead.</p>
+<p><code>(bytestring-&gt;base64</code>&nbsp;<var>bytevector</var> [<var>digits</var>]<code>)</code><br>
+<code>(base64-&gt;bytestring</code>&nbsp;<var>string</var> [<var>digits</var>]<code>)</code></p>
+<p>Convert between a bytevector and its base-64 encoding as a string. The 64 digits are represented by the characters 0-9, A-Z, a-z, and the symbols + and /. However, there are different variants of base-64 encoding which use different representations of the 62nd and 63rd digit. If the optional argument <var>digits</var> (a two-character string) is provided, those two characters will be used as the 62nd and 63rd digit instead.
+Details can be found in
+<a href="https://tools.ietf.org/html/rfc4648">RFC 4648</a>.
+If <var>string</var> is not in base-64 format, an error satisfying <code>bytestring-error?</code> is raised.
+However, characters that satisfy <code>char-whitespace?</code>
+are silently ignored.
 
 <p><code>(list-&gt;bytestring</code>&nbsp;<var>list</var><code>)</code></p>
 <p>Convert a list into a bytevector. If the elements of the list are not suitable arguments for <code>bytestring</code>, an error satisfying <code>bytestring-error?</code> is signaled.</p>

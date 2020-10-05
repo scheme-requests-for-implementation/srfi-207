@@ -123,12 +123,21 @@
                   (lambda (i)
                     (integer->hex-string (bytevector-u8-ref bv i))))))
 
-;; TODO: Unfold a bytevector; don't use string->number.
 (define (hex-string->bytestring hex-str)
   (assume (string? hex-str))
-  (cond ((string-null? hex-str) (bytevector))
-        ((string->number hex-str 16) => integer->bytevector)
-        (else (bytestring-error "invalid hexadecimal string" hex-str))))
+  (let ((len (string-length hex-str)))
+    (unless (even? len)
+      (bytestring-error "incomplete hexadecimal string" hex-str))
+    (u8vector-unfold
+     (lambda (_ i)
+       (let* ((end (+ i 2))
+              (s (substring hex-str i end))
+              (n (string->number s 16)))
+         (if n
+             (values n end)
+             (bytestring-error "invalid hexadecimal sequence" s))))
+     (truncate-quotient len 2)
+     0)))
 
 (define bytestring->base64
   (case-lambda

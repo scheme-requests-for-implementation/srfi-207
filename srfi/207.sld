@@ -71,8 +71,16 @@
             (cond ((= i len) (if #f #f))
                   (else
                    (proc (bytevector-u8-ref bvec i))
-                   (lp (+ i 1)))))))))
-    (else (import (only (srfi 160 u8) u8vector-for-each))))
+                   (lp (+ i 1)))))))
+      (define (u8vector-unfold f len seed)
+        (let ((u8vec (make-bytevector len)))
+          (let lp ((i 0) (seed seed))
+            (unless (= i len)
+              (let-values (((b seed*) (proc i seed)))
+                (bytevector-u8-set! u8vec i b)
+                (lp (+ i 1) seed*))))
+          u8vec))))
+    (else (import (only (srfi 160 u8) u8vector-for-each u8vector-unfold))))
 
   (export bytestring list->bytestring bytestring->hex-string bytestring->list
           bytestring->string

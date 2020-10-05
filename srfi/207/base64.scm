@@ -32,21 +32,18 @@
 
 (define (outside-char? x) (eqv? x outside-char))
 (define (pad-char? x) (eqv? x pad-char))
-(define (ascii-number? n) (and (>= n 48) (< n 58)))
-(define (ascii-upper? n) (and (>= n 65) (< n 91)))
-(define (ascii-lower? n) (and (>= n 97) (< n 123)))
 
 (define (make-base64-decode-table digits)
   (let ((extra-1 (char->integer (string-ref digits 0)))
         (extra-2 (char->integer (string-ref digits 1))))
     (vector-unfold
      (lambda (i)
-       (cond ((ascii-number? i) (+ i 4))
-             ((ascii-upper? i) (- i 65))
-             ((ascii-lower? i) (- i 71))
+       (cond ((and (>= i 48) (< i 58)) (+ i 4))   ; numbers
+             ((and (>= i 65) (< i 91)) (- i 65))  ; upper case letters
+             ((and (>= i 97) (< i 123)) (- i 71)) ; lower case letters
              ((= i extra-1) 62)
              ((= i extra-2) 63)
-             ((= i #x3d) pad-char)                 ; '='
+             ((= i 61) pad-char)                  ; '='
              (else outside-char)))
      #x100)))
 
@@ -74,6 +71,11 @@
        (decode-base64-to-port src out table)
        (get-output-bytevector out)))))
 
+;; Loop through src, writing decoded base64 data to port in chunks
+;; of up to three bytes.
+;;
+;; TODO: Use a single bitvector instead of the b1, b2, b3 bytes, to
+;; eliminate the clumsy 6-bits-in-a-byte representation.
 (define (decode-base64-to-port src port table)
   (let ((len (string-length src)))
     (let lp ((i 0) (b1 outside-char) (b2 outside-char) (b3 outside-char))

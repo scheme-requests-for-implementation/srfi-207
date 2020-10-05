@@ -1,10 +1,10 @@
 (define-library (srfi 207)
   (import (scheme base)
           (scheme case-lambda)
+          (only (scheme char) char-whitespace?)
           (srfi 1)
           (srfi 151)
-          (bytestring error)
-          (foof base64))
+          (bytestring error))
 
   (cond-expand
     ((library (scheme bytevector))
@@ -27,6 +27,18 @@
         (assume (bytevector? bstring))
         (list-tabulate (bytevector-length bstring)
                        (lambda (i) (bytevector-u8-ref bstring i)))))))
+
+  (cond-expand
+    ((library (srfi 133))
+     (import (only (srfi 133) vector-unfold)))
+    (else
+     (begin    ; We only need the "seedless" (tabulate) version
+      (define (vector-unfold f len)
+        (let ((res (make-vector len)))
+          (let lp ((i 0))
+            (cond ((= i len) res)
+                  (else (vector-set! res i (f i))
+                        (lp (+ i 1))))))))))
 
   (cond-expand
     ((library (srfi 145))
@@ -79,5 +91,6 @@
           bytestring-join bytestring-split
           write-bytestring)
 
-  (include "parse.scm")
-  (include "207.scm"))
+  (include "207/parse.scm")
+  (include "207/base64.scm")
+  (include "207/bytestrings-impl.scm"))

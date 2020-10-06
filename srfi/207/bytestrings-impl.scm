@@ -483,6 +483,7 @@
    ((bstring)
     (write-textual-bytestring bstring (current-output-port)))
    ((bstring port)
+    (write-string "#u8\"")
     (u8vector-for-each
      (lambda (b)
        (cond ((and (< b 14) (assv b backslash-codepoints)) =>
@@ -492,7 +493,8 @@
              ((and (>= b #x20) (<= b #x7e))
               (write-char (integer->char b) port))
              (else (bytestring-error "invalid byte" b))))
-     bstring))))
+     bstring)
+    (write-char #\"))))
 
 (define (write-binary-bytestring port . args)
   (assume (binary-port? port))

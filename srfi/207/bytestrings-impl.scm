@@ -73,26 +73,7 @@
 
 ;;;; Conversion
 
-(define backslash-codepoints
-  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
-
-(define write-textual-bytestring
-  (case-lambda
-   ((bstring)
-    (write-textual-bytestring bstring (current-output-port)))
-   ((bstring port)
-    (u8vector-for-each
-     (lambda (b)
-       (cond ((and (< b 14) (assv b backslash-codepoints)) =>
-              (lambda (p)
-                (write-char #\\ port)
-                (write-char (cdr p) port)))
-             ((and (>= b #x20) (<= b #x7e))
-              (write-char (integer->char b) port))
-             (else (bytestring-error "invalid byte" b))))
-     bstring))))
-
-;;;; Hex string conversion
+;;; Hex string conversion
 
 ;; Convert an unsigned integer n to a bytevector representing
 ;; the base-256 big-endian form (the zero index holds the MSB).
@@ -492,7 +473,26 @@
           (if (char? delimiter) (char->integer delimiter) delimiter)
           grammar)))))
 
-;;;; Output
+;;;; I/O
+
+(define backslash-codepoints
+  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
+
+(define write-textual-bytestring
+  (case-lambda
+   ((bstring)
+    (write-textual-bytestring bstring (current-output-port)))
+   ((bstring port)
+    (u8vector-for-each
+     (lambda (b)
+       (cond ((and (< b 14) (assv b backslash-codepoints)) =>
+              (lambda (p)
+                (write-char #\\ port)
+                (write-char (cdr p) port)))
+             ((and (>= b #x20) (<= b #x7e))
+              (write-char (integer->char b) port))
+             (else (bytestring-error "invalid byte" b))))
+     bstring))))
 
 (define (write-binary-bytestring port . args)
   (assume (binary-port? port))

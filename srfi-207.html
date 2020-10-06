@@ -117,12 +117,6 @@
 
 <h3>Conversion</h3>
 
-<p><code>(bytestring-&gt;string</code>&nbsp;<var>bytestring</var> [ <var>v</var> ]<code>)</code></p>
-<p>Convert a bytevector to the corresponding string in the external format described in this SRFI. If the <var>v</var> argument is present and true, a <code>#\v</code> is prefixed to the string for compatibility with R6RS.</p>
-<code>(string-&gt;bytestring</code>&nbsp;<var>string</var><code>)</code>
-<p>Convert a string in the external format described in this SRFI to the corresponding bytevector. If the first character is a <code>#\v</code>, it is ignored.
-If <var>string</var> is not in the external format, an error satisfying <code>bytestring-error?</code> is raised.</p>
-
 <p><code>(bytestring-&gt;hex-string</code>&nbsp;<var>bytestring</var><code>)</code><br>
 <code>(hex-string-&gt;bytestring</code>&nbsp;<var>string</var><code>)</code></p>
 <p>Convert between a bytevector and a string containing pairs of hexadecimal digits.
@@ -205,15 +199,36 @@ are silently ignored.
 <p>Divides the elements of <var>bytevector</var> and returns a list of bytevectors using the <var>delimiter</var> (an ASCII character or exact integer in the range 0-255 inclusive). Delimiter bytes are not included in the result bytevectors.</p>
 <p>The <var>grammar</var> argument is used to control how <var>bytevector</var> is divided. It has the same default and meaning as in <code>bytestring-join</code>, except that <code>infix</code> and <code>strict-infix</code> mean the same thing. That is, if <var>grammar</var> is <code>prefix</code> or <code>suffix</code>, then ignore any delimiter in the first or last position of <var>bytevector</var> respectively.</p>
 
-<h3>Output</h3>
+<h3>I/O</h3>
 
-<p><code>(write-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
+<code>(read-textual-bytestring</code>&nbsp; [ <var>port</var> ]<code>)</code>
+<p>Read a string in the external format described in this SRFI
+from <var>port</var> and return it as a bytevector.
+If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.
+If the characters read are not in the external format,
+an error satisfying <code>bytestring-error?</code> is raised.</p>
+
+<p><code>(write-textual-bytestring</code>&nbsp;<var>bytestring</var> [ <var>port</var> ]<code>)</code></p>
+<p>Write <var>bytestring</var> in the external format described in this SRFI to <var>port</var>.
+If <var>port</var> is omitted, it defaults to the value of <code>(current-output-port)</code>.</p>
+
+<p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
 <p>Outputs each <var>arg</var> to the binary output port <var>port</var> using the same interpretations as <code>bytestring</code>, but does not create any bytevectors.</p>
 
 <h3>Exception</h3>
 
 <p><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
-<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by <code>bytestring</code>, <code>list-&gt;bytestring</code>, <code>bytestring-join</code>, <code>bytestring-split</code> or <code>write-bytestring</code> in the circumstances described above.</p>
+<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by any of the
+following procedures, in the circumstances described above:</p>
+<ul>
+  <li><code>bytestring</code></li>
+  <li><code>hex-string-&gt;bytestring</code></li>
+  <li><code>base64-&gt;bytestring</code></li>
+  <li><code>list-&gt;bytestring</code></li>
+  <li><code>bytestring-join</code></li>
+  <li><code>read-textual-bytestring</code></li>
+  <li><code>write-binary-bytestring</code></li>
+</ul>
 
 <h2 id="implementation">Implementation</h2>
 

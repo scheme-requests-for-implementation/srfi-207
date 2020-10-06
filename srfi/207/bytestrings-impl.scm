@@ -76,23 +76,21 @@
 (define backslash-codepoints
   '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
 
-(define (bytestring->string bstring . rest)
-  (call-with-port
-   (open-output-string)
-   (lambda (port)
-     (u8vector-for-each
-      (lambda (b)
-        (cond ((and (< b 14) (assv b backslash-codepoints)) =>
-               (lambda (p)
-                 (write-char #\\ port)
-                 (write-char (cdr p) port)))
-              ((and (>= b #x20) (<= b #x7e))
-               (write-char (integer->char b) port))
-              (else (bytestring-error "invalid byte" b))))
-      bstring)
-     (if (and (pair? rest) (car rest))
-         (string-append "v" (get-output-string port))
-         (get-output-string port)))))
+(define write-textual-bytestring
+  (case-lambda
+   ((bstring)
+    (write-textual-bytestring bstring (current-output-port)))
+   ((bstring port)
+    (u8vector-for-each
+     (lambda (b)
+       (cond ((and (< b 14) (assv b backslash-codepoints)) =>
+              (lambda (p)
+                (write-char #\\ port)
+                (write-char (cdr p) port)))
+             ((and (>= b #x20) (<= b #x7e))
+              (write-char (integer->char b) port))
+             (else (bytestring-error "invalid byte" b))))
+     bstring))))
 
 ;;;; Hex string conversion
 
@@ -496,6 +494,6 @@
 
 ;;;; Output
 
-(define (write-bytestring port . args)
+(define (write-binary-bytestring port . args)
   (assume (binary-port? port))
   (for-each (lambda (seg) (%write-bytestring-segment seg port)) args))

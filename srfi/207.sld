@@ -83,8 +83,6 @@
     (else (import (only (srfi 160 u8) u8vector-for-each u8vector-unfold))))
 
   (export bytestring list->bytestring bytestring->hex-string bytestring->list
-          bytestring->string
-          string->bytestring
           list->bytestring!
           hex-string->bytestring bytestring->base64 base64->bytestring
           bytestring-pad bytestring-pad-right bytestring-trim
@@ -96,7 +94,8 @@
           bytestring-ci>=?
           bytestring-error? bytestring-error-message bytestring-error-irritants
           bytestring-join bytestring-split
-          write-bytestring)
+          read-textual-bytestring write-textual-bytestring
+          write-binary-bytestring)
 
   (include "207/error.scm")
   (include "207/parse.scm")

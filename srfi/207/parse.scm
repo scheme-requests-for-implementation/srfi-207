@@ -61,8 +61,14 @@
       (read-char)
       (lp))))
 
-(define (string->bytestring s)
-  (parameterize ((current-input-port (open-input-string s))
-                 (current-output-port (open-output-bytevector)))
-    (parse)
-    (get-output-bytevector (current-output-port))))
+(define read-textual-bytestring
+  (case-lambda
+   (() (read-textual-bytestring (current-input-port)))
+   ((in)
+    (call-with-port
+     (open-output-bytevector)
+     (lambda (out)
+       (parameterize ((current-input-port in)
+                      (current-output-port out))
+         (parse)
+         (get-output-bytevector out)))))))

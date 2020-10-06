@@ -217,7 +217,17 @@ If <var>port</var> is omitted, it defaults to the value of <code>(current-output
 <h3>Exception</h3>
 
 <p><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
-<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by <code>bytestring</code>, <code>list-&gt;bytestring</code>, <code>bytestring-join</code>, <code>bytestring-split</code> or <code>write-bytestring</code> in the circumstances described above.</p>
+<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by any of the
+following procedures, in the circumstances described above:</p>
+<ul>
+  <li><code>bytestring</code></li>
+  <li><code>hex-string-&gt;bytestring</code></li>
+  <li><code>base64-&gt;bytestring</code></li>
+  <li><code>list-&gt;bytestring</code></li>
+  <li><code>bytestring-join</code></li>
+  <li><code>read-textual-bytestring</code></li>
+  <li><code>write-binary-bytestring</code></li>
+</ul>
 
 <h2 id="implementation">Implementation</h2>
 

@@ -208,8 +208,8 @@ If the characters read are not in the external format,
 an error satisfying <code>bytestring-error?</code> is raised.</p>
 
 <p><code>(write-textual-bytestring</code>&nbsp;<var>bytestring</var> [ <var>port</var> ]<code>)</code></p>
-<p>Write <var>bytestring</var> in the external format described in this SRFI. to <var>port</var>.
-If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.</p>
+<p>Write <var>bytestring</var> in the external format described in this SRFI to <var>port</var>.
+If <var>port</var> is omitted, it defaults to the value of <code>(current-output-port)</code>.</p>
 
 <p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
 <p>Outputs each <var>arg</var> to the binary output port <var>port</var> using the same interpretations as <code>bytestring</code>, but does not create any bytevectors.</p>

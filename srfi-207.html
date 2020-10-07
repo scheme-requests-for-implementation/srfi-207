@@ -28,11 +28,14 @@
 
 <h2 id="abstract">Abstract</h2>
 
-<p>To ease the human reading and writing of Scheme code involving strings encoded as bytevectors in ASCII-related encodings, a notation for bytevectors is proposed which allows printable ASCII characters to be used literally without being converted to their corresponding integer forms. In addition, this SRFI provides a set of procedures for manipulating bytevectors as if they were strings as far as possible.
-
-<h2 id="issues">Issues</h2>
-
-<p>I notice R6RS actually uses <code>#vu8</code> for its built-in bytevectors where everyone else uses <code>#u8</code>. Should that be supported with a string notation too?
+<p>To ease the human reading and writing of Scheme code involving
+strings encoded as bytevectors in ASCII-related encodings, a notation
+for bytevectors is proposed which allows printable ASCII characters
+to be used literally without being converted to their corresponding
+integer forms. In addition, this SRFI provides procedures
+for constructing a bytevector from a sequence of integers,
+characters, strings, and/or bytevectors, and for manipulating
+bytevectors as if they were strings as far as possible.
 
 <h2 id="rationale">Rationale</h2>
 
@@ -44,7 +47,11 @@
 
 <h2 id="specification">Specification</h2>
 
-<p>To avoid confusion with the names used in other SRFIs, the names of these procedures use the word <dfn>bytestring</dfn> instead of <dfn>bytevector</dfn>. However, these names refer to exactly the same type.
+<p>The bytevectors constructed by the procedures of this SRFI
+are referred to as <i>bytestrings</i>, to emphasize their use
+as if they were strings, as well as to avoid collisions
+with procedure names in other SRFIs.
+However, bytestrings and bytevectors are exactly the same type.
 
 <h3>External notation</h3>
 
@@ -139,6 +146,10 @@ are silently ignored.
 <p><code>(bytestring-&gt;list</code>&nbsp;<var>bytevector</var> [ <var>start</var> [ <var>end</var> ] ]<code>)</code></p>
 <p>Convert all or part of a bytevector into a list containing suitable arguments for <code>bytestring</code>. If <code>list-&gt;bytestring</code> is applied to the list, the resulting bytevector will be byte for byte the same as <var>bytevector</var>, but the exact contents of the list are not specified by this SRFI.</p>
 
+<p><code>(make-bytestring-generator</code>&nbsp;<var>arg</var> …<code>)</code></p>
+<p>Returns a generator that when invoked will return consecutive bytes
+of the bytestring that <code>bytestring</code> would create when applied
+to <var>args</var>, but without creating any bytevectors.</p>
 <h3>Selection</h3>
 
 <p><code>(bytestring-pad</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code><br>
@@ -212,7 +223,7 @@ an error satisfying <code>bytestring-error?</code> is raised.</p>
 If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.</p>
 
 <p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
-<p>Outputs each <var>arg</var> to the binary output port <var>port</var> using the same interpretations as <code>bytestring</code>, but does not create any bytevectors.</p>
+<p>Outputs each <var>arg</var> to the binary output port <var>port</var> using the same interpretations as <code>bytestring</code>, but without creating any bytevectors.</p>
 
 <h3>Exception</h3>
 

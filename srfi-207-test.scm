@@ -95,9 +95,6 @@
 
 (define test-bstring (bytestring "lorem"))
 
-(define broken-string "ab\\
-      cde")
-
 (define homer
   (bytestring "The Man, O Muse, informe, who many a way / \
                Wound in his wisedome to his wished stay;"))
@@ -122,19 +119,6 @@
 
 (define (check-conversion)
   (print-header "Running conversion tests...")
-
-  (check (bytestring->string #u8())            => "")
-  (check (bytestring->string test-bstring)     => "lorem")
-  (check (bytestring->string #u8(7 8 9 10 13)) => "\\a\\b\\t\\n\\r")
-  (check (bytestring->string test-bstring #t)  => "vlorem")
-
-  (check (string->bytestring "")                 => #u8())
-  (check (string->bytestring "lorem")            => test-bstring)
-  (check (string->bytestring "\\xf;\\xad;\\xe;") => #u8(#xf #xad #xe))
-  (check (string->bytestring "\\a\\b\\t\\n\\r")  => #u8(7 8 9 10 13))
-  (check (string->bytestring "a\\x1;b\\t")       => #u8(#x61 #x1 #x62 #x9))
-  (check (string->bytestring broken-string)
-   => #u8(#x61 #x62 #x63 #x64 #x65))
 
   (check (bytestring->hex-string test-bstring) => "6c6f72656d")
   (check (hex-string->bytestring "6c6f72656d") => test-bstring)
@@ -245,12 +229,6 @@
   (define mixed-case-bstring (bytestring "loreM"))
   (print-header "Runnng comparison tests...")
 
-  (check (bytestring=? test-bstring test-bstring)        => #t)
-  (check (bytestring=? test-bstring
-                       #u8(#x6c #x6f #x72 #x65 #x6d))
-   => #t)
-  (check (bytestring=? test-bstring mixed-case-bstring)  => #f)
-  (check (bytestring=? test-bstring short-bstring)       => #f)
   (check (bytestring<? test-bstring test-bstring)        => #f)
   (check (bytestring<? short-bstring test-bstring)       => #t)
   (check (bytestring<? mixed-case-bstring test-bstring)  => #t)
@@ -344,13 +322,15 @@
 (define (check-output)
   (print-header "Running output tests...")
 
-  (check (with-output-to-bytevector
-          (lambda ()
-            (write-bytestring (current-output-port) "lo" #\r #x65 #u8(#x6d))))
+  (check
+   (with-output-to-bytevector
+    (lambda ()
+      (write-binary-bytestring (current-output-port) "lo" #\r #x65 #u8(#x6d))))
    => test-bstring)
-  (check (catch-bytestring-error
-           (with-output-to-bytevector
-            (lambda () (write-bytestring (current-output-port) #x100))))
+  (check
+   (catch-bytestring-error
+    (with-output-to-bytevector
+     (lambda () (write-binary-bytestring (current-output-port) #x100))))
    => 'bytestring-error))
 
 (define (check-all)

@@ -274,19 +274,6 @@
                   res<
                   res>))))))
 
-(cond-expand
-  ((library (scheme bytevector))
-   (define (bytestring=? bstring1 bstring2)
-     (bytevector=? bstring1 bstring2)))
-  (else
-   (define (bytestring=? bstring1 bstring2)
-     (assume (bytevector? bstring1))
-     (assume (bytevector? bstring2))
-     (or (eqv? bstring1 bstring2)
-         (and (= (bytevector-length bstring1)
-                 (bytevector-length bstring2))
-              (%bytestring-compare bstring1 bstring2 #f #t #f))))))
-
 (define (bytestring<? bstring1 bstring2)
   (assume (bytevector? bstring1))
   (assume (bytevector? bstring2))

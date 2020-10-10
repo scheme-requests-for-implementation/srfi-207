@@ -89,7 +89,7 @@
           bytestring-trim-right bytestring-trim-both bytestring-replace
           bytestring-index bytestring-index-right bytestring-break
           bytestring-span
-          bytestring=? bytestring>? bytestring<? bytestring<=? bytestring>=?
+          bytestring>? bytestring<? bytestring<=? bytestring>=?
           bytestring-ci=? bytestring-ci>? bytestring-ci<? bytestring-ci<=?
           bytestring-ci>=?
           bytestring-error? bytestring-error-message bytestring-error-irritants

@@ -492,7 +492,10 @@
                 (write-char (cdr p) port)))
              ((and (>= b #x20) (<= b #x7e))
               (write-char (integer->char b) port))
-             (else (bytestring-error "invalid byte" b))))
+             (else
+              (write-string "\\x")
+              (write-string (number->string b 16))
+              (write-char #\;))))
      bstring)
     (write-char #\"))))
 

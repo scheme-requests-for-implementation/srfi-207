@@ -85,6 +85,7 @@
   (export bytestring list->bytestring bytestring->hex-string bytestring->list
           list->bytestring!
           hex-string->bytestring bytestring->base64 base64->bytestring
+          make-bytestring-generator
           bytestring-pad bytestring-pad-right bytestring-trim
           bytestring-trim-right bytestring-trim-both bytestring-replace
           bytestring-index bytestring-index-right bytestring-break

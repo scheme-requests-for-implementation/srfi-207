@@ -21,6 +21,8 @@
 
 (import (scheme base))
 (import (srfi 207))
+(import (only (srfi 1) list-tabulate)
+        (only (srfi 158) generator->list))
 
 (cond-expand
   ((library (srfi 78))
@@ -164,6 +166,13 @@
     (check (begin (list->bytestring! bvec 2 '("lo" #\r #x65 #u8(#x6d)))
                   bvec)
      => (bytestring "  lorem  ")))
+
+  (let ((s (list-tabulate (bytevector-length test-bstring)
+                          (lambda (i)
+                            (bytevector-u8-ref test-bstring i)))))
+    (check (let ((g (make-bytestring-generator "lo" #\r #x65 #u8(#x6d))))
+             (generator->list g))
+     => s))
 )
 
 (define (check-selection)

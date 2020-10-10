@@ -134,6 +134,28 @@
      (assume (string? digits))
      (decode-base64-string base64-string digits))))
 
+;; Lazily generate the bytestring constructed from objs.
+(define (make-bytestring-generator . objs)
+  (lambda ()
+    (let lp ()
+      (if (null? objs)
+          (eof-object)
+          (let ((x (car objs)))
+            (cond ((and (char? x) (char<=? x #\delete))
+                   (set! objs (cdr objs))
+                   (char->integer x))
+                  ((and (exact-natural? x) (< x 256))
+                   (set! objs (cdr objs))
+                   x)
+                  ((bytevector? x)
+                   (set! objs (append! (bytevector->u8-list x) (cdr objs)))
+                   (lp))
+                  ((and (string? x) (string-ascii? x))
+                   (set! objs (append! (string->list x) (cdr objs)))
+                   (lp))
+                  (else
+                   (bytestring-error "invalid bytestring segment" x))))))))
+
 ;;;; Selection
 
 (define (%bytestring-pad-left-or-right bstring len char-or-u8 right)

@@ -60,13 +60,23 @@
 
 (define (%write-bytestring-segment obj port)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
-         ((and (char? obj) (char<? obj #\delete)) write-char)
+         ((and (char? obj) (char<=? obj #\delete)) write-char-binary)
          ((bytevector? obj) write-bytevector)
-         ((and (string? obj) (string-ascii? obj)) write-string)
+         ((and (string? obj) (string-ascii? obj)) write-string-binary)
          (else
           (bytestring-error "invalid bytestring element" obj)))
    obj
    port))
+
+;; If your Scheme allows binary ports to function as textual ports,
+;; get rid of this dance.
+(define (write-char-binary c port)
+  (write-u8 (char->integer c) port))
+
+(define (write-string-binary s port)
+  (string-for-each (lambda (c)
+                     (write-char-binary c port))
+                   s))
 
 (define (bytestring . args)
   (if (null? args) (bytevector) (list->bytestring args)))

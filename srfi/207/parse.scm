@@ -32,6 +32,8 @@
     ((#\t) 9)
     ((#\n) 10)
     ((#\r) 13)
+    ((#\") 34)
+    ((#\\) 92)
     ((#\x) (parse-hex))
     ((#\space #\tab)
      (skip-horizontal-whitespace)

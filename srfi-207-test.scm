@@ -95,6 +95,11 @@
        (thunk)
        (get-output-bytevector (current-output-port))))))
 
+(define-syntax parse-SNB
+  (syntax-rules ()
+    ((_ s)
+     (call-with-port (open-input-string s) read-textual-bytestring))))
+
 (define test-bstring (bytestring "lorem"))
 
 (define homer
@@ -328,8 +333,8 @@
   (check (catch-bytestring-error
            (bytestring-split #u8() 0 'foofix))         => 'bytestring-error))
 
-(define (check-output)
-  (print-header "Running output tests...")
+(define (check-io)
+  (print-header "Running I/O tests...")
 
   (check
    (with-output-to-bytevector
@@ -340,7 +345,38 @@
    (catch-bytestring-error
     (with-output-to-bytevector
      (lambda () (write-binary-bytestring (current-output-port) #x100))))
-   => 'bytestring-error))
+   => 'bytestring-error)
+
+  ;;; read-textual-bytestring
+
+  (check (parse-SNB "#u8\"lorem\"") => test-bstring)
+  (check (parse-SNB "#u8\"\\xde;\\xad;\\xf0;\\x0d;\"")
+   => (bytevector #xde #xad #xf0 #x0d))
+  (check (parse-SNB "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\"")
+   => (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return))
+  (check (parse-SNB "#u8\"lor\\\n\te\\   \r\n\tm\"")
+   => test-bstring)
+
+  ;; Invalid SNB detection.
+  (check (catch-bytestring-error (parse-SNB "#u\"lorem\""))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8lorem\""))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"lorem"))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"lorem"))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"l\\orem\""))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"l\\    orem\""))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"l\\x6frem\""))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"l\\x6z;rem\""))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (parse-SNB "#u8\"α equivalence\""))
+   => 'bytestring-error)
+)
 
 (define (check-all)
   (check-constructor)
@@ -350,7 +386,7 @@
   (check-comparison)
   (check-searching)
   (check-join-and-split)
-  (check-output)
+  (check-io)
 
   (newline)
   (check-report))

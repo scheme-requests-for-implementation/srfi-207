@@ -251,33 +251,6 @@
               i
               (lp (+ i 1)))))))
 
-;; A portable implementation can't rely on inlining, but it can
-;; rely on macros.  `byte' had better be an identifier!
-(define-syntax u8-fold-case
-  (syntax-rules ()
-    ((_ byte)
-     (if (and (<= 65 byte) (< byte 91))
-         (+ 32 byte)
-         byte))))
-
-(define (u8-ci=? byte1 byte2)
-  (= (u8-fold-case byte1) (u8-fold-case byte2)))
-
-(define (u8-ci<? byte1 byte2)
-  (< (u8-fold-case byte1) (u8-fold-case byte2)))
-
-(define (%bytestring-prefix-length-ci bstring1 bstring2)
-  (let ((end (min (bytevector-length bstring1)
-                  (bytevector-length bstring2))))
-    (if (eqv? bstring1 bstring2)  ; fast path
-        end
-        (let lp ((i 0))
-          (if (or (>= i end)
-                  (not (u8-ci=? (bytevector-u8-ref bstring1 i)
-                                (bytevector-u8-ref bstring2 i))))
-              i
-              (lp (+ i 1)))))))
-
 ;;; Primitive bytevector comparison functions.
 
 (define (%bytestring-compare bstring1 bstring2 res< res= res>)
@@ -290,19 +263,6 @@
               res>
               (if (< (bytevector-u8-ref bstring1 match)
                      (bytevector-u8-ref bstring2 match))
-                  res<
-                  res>))))))
-
-(define (%bytestring-compare-ci bstring1 bstring2 res< res= res>)
-  (let ((len1 (bytevector-length bstring1))
-        (len2 (bytevector-length bstring2)))
-    (let ((match (%bytestring-prefix-length-ci bstring1 bstring2)))
-      (if (= match len1)
-          (if (= match len2) res= res<)
-          (if (= match len2)
-              res>
-              (if (u8-ci<? (bytevector-u8-ref bstring1 match)
-                           (bytevector-u8-ref bstring2 match))
                   res<
                   res>))))))
 
@@ -329,38 +289,6 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (%bytestring-compare bstring1 bstring2 #f #t #t)))
-
-(define (bytestring-ci=? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (or (eqv? bstring1 bstring2)
-      (and (= (bytevector-length bstring1)
-              (bytevector-length bstring2))
-           (%bytestring-compare-ci bstring1 bstring2 #f #t #f))))
-
-(define (bytestring-ci<? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (and (not (eqv? bstring1 bstring2))
-       (%bytestring-compare-ci bstring1 bstring2 #t #f #f)))
-
-(define (bytestring-ci>? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (and (not (eqv? bstring1 bstring2))
-       (%bytestring-compare-ci bstring1 bstring2 #f #f #t)))
-
-(define (bytestring-ci<=? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (or (eqv? bstring1 bstring2)
-      (%bytestring-compare-ci bstring1 bstring2 #t #t #f)))
-
-(define (bytestring-ci>=? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (or (eqv? bstring1 bstring2)
-      (%bytestring-compare-ci bstring1 bstring2 #f #t #t)))
 
 ;;;; Searching
 

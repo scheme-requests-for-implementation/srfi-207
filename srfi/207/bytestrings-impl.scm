@@ -22,7 +22,7 @@
 ;;;; Utility
 
 (define (exact-natural? x)
-  (and (integer? x) (exact? x) (not (negative? x))))
+  (and (exact-integer? x) (not (negative? x))))
 
 (define (u8-or-ascii-char? obj)
   (or (and (char? obj) (char<=? obj #\delete))

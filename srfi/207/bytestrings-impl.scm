@@ -495,7 +495,8 @@
 ;;;; I/O
 
 (define backslash-codepoints
-  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
+  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)
+    (34 . #\") (92 . #\\)))
 
 (define write-textual-bytestring
   (case-lambda
@@ -506,7 +507,7 @@
       (write-string "#u8\"")
       (u8vector-for-each
        (lambda (b)
-         (cond ((and (< b 14) (assv b backslash-codepoints)) =>
+         (cond ((assv b backslash-codepoints) =>
                 (lambda (p)
                   (write-char #\\)
                   (write-char (cdr p))))

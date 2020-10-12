@@ -424,7 +424,7 @@
 
 (define backslash-codepoints
   '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)
-    (34 . #\") (92 . #\\)))
+    (34 . #\") (92 . #\\) (124 . #\|)))
 
 (define write-textual-bytestring
   (case-lambda

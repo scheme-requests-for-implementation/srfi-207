@@ -34,6 +34,7 @@
     ((#\r) 13)
     ((#\") 34)
     ((#\\) 92)
+    ((#\|) 124)
     ((#\x) (parse-hex))
     ((#\newline)
      (skip-horizontal-whitespace)

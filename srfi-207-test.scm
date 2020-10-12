@@ -337,8 +337,8 @@
   (check (parse-SNB "#u8\"lorem\"") => test-bstring)
   (check (parse-SNB "#u8\"\\xde;\\xad;\\xf0;\\x0d;\"")
    => (bytevector #xde #xad #xf0 #x0d))
-  (check (parse-SNB "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\"")
-   => (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return))
+  (check (parse-SNB "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\\\|\"")
+   => (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return #\|))
   (check (parse-SNB "#u8\"lor\\\n\te\\   \r\n\tm\"")
    => test-bstring)
 
@@ -368,8 +368,8 @@
   (check (%bytestring->SNB (bytevector #xde #xad #xbe #xef))
    => "#u8\"\\xde;\\xad;\\xbe;\\xef;\"")
   (check (%bytestring->SNB
-          (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return))
-   => "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\"")
+          (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return #\|))
+   => "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\\\|\"")
 
   (let ((test-bstrings
          '(#u8(124 199 173 212 209 232 249 16 198 32 123 111 130 92 64 155)

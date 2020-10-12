@@ -502,21 +502,22 @@
    ((bstring)
     (write-textual-bytestring bstring (current-output-port)))
    ((bstring port)
-    (write-string "#u8\"")
-    (u8vector-for-each
-     (lambda (b)
-       (cond ((and (< b 14) (assv b backslash-codepoints)) =>
-              (lambda (p)
-                (write-char #\\ port)
-                (write-char (cdr p) port)))
-             ((and (>= b #x20) (<= b #x7e))
-              (write-char (integer->char b) port))
-             (else
-              (write-string "\\x")
-              (write-string (number->string b 16))
-              (write-char #\;))))
-     bstring)
-    (write-char #\"))))
+    (parameterize ((current-output-port port))
+      (write-string "#u8\"")
+      (u8vector-for-each
+       (lambda (b)
+         (cond ((and (< b 14) (assv b backslash-codepoints)) =>
+                (lambda (p)
+                  (write-char #\\)
+                  (write-char (cdr p))))
+               ((and (>= b #x20) (<= b #x7e))
+                (write-char (integer->char b)))
+               (else
+                (write-string "\\x")
+                (write-string (number->string b 16))
+                (write-char #\;))))
+       bstring)
+      (write-char #\")))))
 
 (define (write-binary-bytestring port . args)
   (assume (binary-port? port))

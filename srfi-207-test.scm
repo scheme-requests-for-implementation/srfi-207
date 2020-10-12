@@ -21,7 +21,7 @@
 
 (import (scheme base))
 (import (srfi 207))
-(import (only (srfi 1) list-tabulate)
+(import (only (srfi 1) list-tabulate every)
         (only (srfi 158) generator->list))
 
 (cond-expand
@@ -95,10 +95,17 @@
        (thunk)
        (get-output-bytevector (current-output-port))))))
 
-(define-syntax parse-SNB
-  (syntax-rules ()
-    ((_ s)
-     (call-with-port (open-input-string s) read-textual-bytestring))))
+;; Testing shorthands for SNB I/O.  Coverage library fans, eat your
+;; hearts out.
+(define (parse-SNB s)
+  (call-with-port (open-input-string s) read-textual-bytestring))
+
+(define (%bytestring->SNB bstring)
+  (call-with-port (open-output-string)
+                  (lambda (port)
+		    (write-textual-bytestring bstring port)
+		    (get-output-string port))))
+
 
 (define test-bstring (bytestring "lorem"))
 
@@ -376,6 +383,38 @@
    => 'bytestring-error)
   (check (catch-bytestring-error (parse-SNB "#u8\"α equivalence\""))
    => 'bytestring-error)
+
+  ;;; write-textual-bytestring
+
+  (check (%bytestring->SNB test-bstring) => "#u8\"lorem\"")
+  (check (%bytestring->SNB (bytevector #xde #xad #xbe #xef))
+   => "#u8\"\\xde;\\xad;\\xbe;\\xef;\"")
+  (check (%bytestring->SNB
+          (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return))
+   => "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\"")
+
+  (let ((test-bstrings
+         '(#u8(124 199 173 212 209 232 249 16 198 32 123 111 130 92 64 155)
+           #u8(50 133 193 27 177 105 10 186 61 149 177 105 96 70 223 190)
+           #u8(0 117 226 155 110 0 66 216 27 129 187 81 17 210 71 152)
+           #u8(123 31 159 25 100 135 246 47 249 137 243 241 45 241 240 221)
+           #u8(207 186 70 110 118 231 79 195 153 253 93 101 126 198 70 235)
+           #u8(138 176 92 152 208 107 28 236 198 254 111 37 241 116 191 206)
+           #u8(221 254 214 90 0 155 132 92 157 246 199 224 224 142 91 114)
+           #u8(228 216 233 80 142 15 158 54 5 85 174 101 111 75 126 209)
+           #u8(191 16 83 245 45 98 72 212 148 202 135 19 213 150 141 121)
+           #u8(41 169 182 96 47 184 16 116 196 251 243 93 81 162 175 140)
+           #u8(85 49 218 138 132 11 27 11 182 27 120 71 254 169 132 166)
+           #u8(89 216 175 23 97 10 237 112 208 195 112 80 198 154 241 254)
+           #u8(187 54 6 57 250 137 129 89 188 19 225 217 168 178 174 129)
+           #u8(88 164 89 40 175 194 108 56 12 124 109 96 148 149 119 109)
+           #u8(241 66 32 115 203 71 128 154 240 111 194 137 73 44 146 3)
+           #u8(177 185 177 233 18 14 178 106 110 109 222 147 111 157 216 208))))
+    (check
+     (every (lambda (bvec)
+              (equal? bvec (parse-SNB (%bytestring->SNB bvec))))
+            test-bstrings)
+    => #t))
 )
 
 (define (check-all)
@@ -391,4 +430,4 @@
   (newline)
   (check-report))
 
-(check-all)
+;(check-all)

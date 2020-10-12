@@ -29,29 +29,57 @@
 <h2 id="abstract">Abstract</h2>
 
 <p>To ease the human reading and writing of Scheme code involving
-strings encoded as bytevectors in ASCII-related encodings, a notation
-for bytevectors is proposed which allows printable ASCII characters
+binary data that for mnemonic reasons corresponds
+as a whole or in part to ASCII-coded text, a notation
+for bytevectors is defined which allows printable ASCII characters
 to be used literally without being converted to their corresponding
-integer forms. In addition, this SRFI provides procedures
+integer forms. In addition, this SRFI provides a set of procedures
+known as the bytestring library
 for constructing a bytevector from a sequence of integers,
 characters, strings, and/or bytevectors, and for manipulating
 bytevectors as if they were strings as far as possible.
 
 <h2 id="rationale">Rationale</h2>
 
-<p>When bytevectors contain string data in an ASCII-related character encoding (e.g. UTF-8 or ISO 8859), it is much more tractable for human programmers to deal with them in the form <code>#u8"recursion"</code> than in the form <code>#u8(114 101 99 117 114 115 105 111 110)</code>; this is true for strings in many languages which use the Latin script, even when small numbers of non-ASCII characters are used (<code>#u8"r\xE9;cursivit\xE9;"</code>).
+<p>Binary file formats are usually not self-describing, and if they are,
+the descriptive portion is itself binary, which makes it hard for human beings
+to interpret.  To assist with this problem, it is common to have a
+human-readable section at the beginning of the file, or in some cases
+at the beginning of each distinct section of the file.
+For historical reasons and to avoid text encoding complications, it is usual
+for this human-readable section to be expressed as ASCII text.</p>
+
+<p>For example, ZIP files begin with the hex bytes <code>50 4B</code>
+which are the ASCII encoding for the characters "PK", the initials
+of Phil Katz, the inventor of ZIP format.  As another example,
+the GIF image format begins with <code>47 49 46 38 39 61</code>,
+the ASCII encoding for "GIF89a", where "89a" is the format version.
+A third example is the PNG image format, where the file header
+begins <code>89 50 4E 47</code>.  The first byte is intentionally
+non-ASCII, but the next three are "PNG".  Furthermore, a PNG
+file is divided into chunks, each of which contains a 4-byte
+"chunk type" code. The letters in the chunk type are mnemonics
+for its purpose, such as "PLTE" for a palette, "bKGD" for a
+default background color, and "iTXt" for descriptive text in UTF-8.</p>
+
+<p>When bytevectors contain string data of this kind, it is much more tractable for
+human programmers to deal with them in the form <code>#u8"recursion"</code>
+than in the form <code>#u8(114 101 99 117 114 115 105 111 110)</code>.
+This is true even when non-ASCII bytes are incorporated
+into the bytevector: the complete 8-bit PNG file header can be written as
+<code>#u8"\x89;PNG\r\n\x1A;\n"</code>
+instead of <code>#u8(0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A)</code>.</p>
 
 <p>In addition, this SRFI provides bytevectors with additional procedures that closely resemble those provided for strings. For example, bytevectors can be padded or trimmed, compared case-sensitively or case-insensitively, searched, joined, and split.
 
-<p>In this specification it is assumed that bytevectors are as defined in R7RS-small 6.9. Implementations may also consider them equivalent to R6RS bytevectors (R6RS 4.3.4) or SRFI 4 <code>u8vector</code>s, depending which kind of homogeneous vectors of unsigned 8-bit integers an implementation supports.
+<p>In this specification it is assumed that bytevectors are as defined in R7RS-small section 6.9. Implementations may also consider them equivalent to R6RS bytevectors (R6RS 4.3.4) or SRFI 4 <code>u8vector</code>s, depending which kind of homogeneous vectors of unsigned 8-bit integers an implementation supports.
 
 <h2 id="specification">Specification</h2>
 
-<p>The bytevectors constructed by the procedures of this SRFI
-are referred to as <i>bytestrings</i>, to emphasize their use
-as if they were strings, as well as to avoid collisions
-with procedure names in other SRFIs.
-However, bytestrings and bytevectors are exactly the same type.
+<p>Most of the procedures of this SRFI begin with <code>bytestring-</code>
+in order to distinguish them from other bytevector procedures.
+This does not mean that they accept or return a separate bytestring type:
+bytestrings and bytevectors are exactly the same type.</p>
 
 <h3>External notation</h3>
 
@@ -74,6 +102,7 @@ However, bytestrings and bytevectors are exactly the same type.
       <tr><td><code>\t</code> <td>9
       <tr><td><code>\n</code> <td>10
       <tr><td><code>\r</code> <td>13
+      <tr><td><code>\|</code> <td>124
     </table>
   <li>the sequence <code>\x</code> followed by one or two hexadecimal digits followed by <code>;</code> represents the integer specified;
   <li>the sequence <code>\</code> followed by zero or more intraline whitespace characters, followed by a newline, followed by zero or more further intraline whitespace characters, is ignored and corresponds to no entry in the resulting bytevector;
@@ -81,6 +110,9 @@ However, bytestrings and bytevectors are exactly the same type.
   <li>it is an error to use any other character or sequence beginning with <code>\</code> within a string-notated bytevector.
 </ul>
 
+<p>Note: The <code>\|</code> sequence is provided so that
+string parsing, symbol parsing, and string-notated bytevector parsing
+can all use the same sequences.</p>
 <p>When the Scheme reader encounters a string-notated bytevector, it produces a datum as if that bytevector had been written out in full. That is, <code>#u8"A"</code> is exactly equivalent to <code>#u8(65)</code>.
 
 <p>A Scheme implementation which supports string-notated bytevectors may not by default use this notation when any of the <code>write</code> family of procedures is called upon a bytevector or upon another datum containing a bytevector. A future SRFI is expected to add a configurable version of the <code>write</code> procedure which may enable the use of this notation in this context.
@@ -148,7 +180,7 @@ are silently ignored.
 
 <p><code>(make-bytestring-generator</code>&nbsp;<var>arg</var> …<code>)</code></p>
 <p>Returns a generator that when invoked will return consecutive bytes
-of the bytestring that <code>bytestring</code> would create when applied
+of the bytevector that <code>bytestring</code> would create when applied
 to <var>args</var>, but without creating any bytevectors.</p>
 <h3>Selection</h3>
 
@@ -168,21 +200,16 @@ to <var>args</var>, but without creating any bytevectors.</p>
 
 <h3>Comparison</h3>
 
-<p><code>(bytestring=?</code> <var>bytevector1 bytevector2</var><code>)</code></p>
-<p>Returns <code>#t</code> if <var>bytevector1</var> and <var>bytevector2</var> are the same length and contain the same bytes in the same order; returns <code>#f</code> otherwise.</p>
+<p>To compare bytevectors for equality, use the
+procedure <code>bytevector=?</code> from either
+the R6RS library <code>(rnrs bytevectors)</code> or
+the equivalent R7RS library <code>(scheme bytevector)</code>.
 
 <p><code>bytestring&lt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
 <code>bytestring&gt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
 <code>bytestring&lt;=?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
 <code>bytestring&gt;=?</code> <var>bytevector1 bytevector2</var><code>)</code></p>
 <p>Returns <code>#t</code> if <var>bytevector1</var> is less than / greater than / less than or equal to / greater than or equal to <var>bytevector2</var>. Comparisons are lexicographical: shorter bytevectors compare before longer ones, all elements being equal.</p>
-
-<p><code>bytestring-ci=?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring-ci&lt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring-ci&gt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring-ci&lt;=?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring-ci&gt;=?</code> <var>bytevector1 bytevector2</var><code>)</code></p>
-<p>The same as the corresponding procedures without <code>-ci</code>, except that the comparison is done as if any elements in either <var>bytevector</var> that are in the range 65-90 have had 32 added to them.</p>
 
 <h3>Searching</h3>
 
@@ -218,8 +245,8 @@ If <var>port</var> is omitted, it defaults to the value of <code>(current-input-
 If the characters read are not in the external format,
 an error satisfying <code>bytestring-error?</code> is raised.</p>
 
-<p><code>(write-textual-bytestring</code>&nbsp;<var>bytestring</var> [ <var>port</var> ]<code>)</code></p>
-<p>Write <var>bytestring</var> in the external format described in this SRFI. to <var>port</var>.
+<p><code>(write-textual-bytestring</code>&nbsp;<var>bytevector</var> [ <var>port</var> ]<code>)</code></p>
+<p>Write <var>bytevector</var> in the external format described in this SRFI. to <var>port</var>.
 If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.</p>
 
 <p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
@@ -228,11 +255,12 @@ If <var>port</var> is omitted, it defaults to the value of <code>(current-input-
 <h3>Exception</h3>
 
 <p><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
-<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by <code>bytestring</code>, <code>list-&gt;bytestring</code>, <code>bytestring-join</code>, <code>bytestring-split</code> or <code>write-bytestring</code> in the circumstances described above.</p>
+<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by <code>bytestring</code>, <code>list-&gt;bytestring</code>, <code>bytestring-join</code>, <code>bytestring-split</code> or <code>write-binary-bytestring</code> in the circumstances described above.</p>
 
 <h2 id="implementation">Implementation</h2>
 
-<p>The procedures specified in this SRFI, but not the notation, are to be provided with a sample implementation.
+<p>There is a sample implementation of the procedures,
+but not the notation, in the repository of this SRFI.
 
 <h2 id="acknowledgements">Acknowledgements</h2>
 

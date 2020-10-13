@@ -31,6 +31,11 @@
 (define (string-ascii? str)
   (and (string-every (lambda (c) (char<=? c #\delete)) str) #t))
 
+(define (valid-bytestring-segment? obj)
+  (or (bytevector? obj)
+      (u8-or-ascii-char? obj)
+      (and (string? obj) (string-ascii? obj))))
+
 (define (%bytestring-null? bstring)
   (zero? (bytevector-length bstring)))
 
@@ -463,4 +468,8 @@
 
 (define (write-binary-bytestring port . args)
   (assume (binary-port? port))
+  (for-each (lambda (arg)
+              (unless (valid-bytestring-segment? arg)
+                (bytestring-error "invalid bytestring element" arg)))
+            args)
   (for-each (lambda (seg) (%write-bytestring-segment seg port)) args))

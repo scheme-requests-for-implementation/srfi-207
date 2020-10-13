@@ -159,6 +159,15 @@
     ((bstring start)
      (bytestring->list bstring start (bytevector-length bstring)))
     ((bstring start end)
+     (assume (bytevector? bstring))
+     (assume (and (exact-natural? start) (>= start 0))
+             "invalid start index"
+             start
+             bstring)
+     (assume (and (exact-natural? end) (<= end (bytevector-length bstring)))
+             "invalid end index"
+             end
+             bstring)
      (unfold (lambda (i) (= i end))
              (lambda (i) (bytevector-u8-ref bstring i))
              (lambda (i) (+ i 1))

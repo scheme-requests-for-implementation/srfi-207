@@ -176,6 +176,8 @@
           (base64->bytestring "bG9@frob"))             => 'bytestring-error)
 
   (check (bytestring->list #u8()) => '())
+  (check (bytestring->list (bytestring 70 82 0 66)) => '(#\F #\R 0 #\B))
+  (check (bytestring->list (bytestring "\a\t\t\n" 200)) => '(7 9 9 10 200))
   (check (list->bytestring (bytestring->list test-bstring)) => test-bstring)
   (check (list->bytestring (bytestring->list test-bstring 2))
    => (bytestring "rem"))

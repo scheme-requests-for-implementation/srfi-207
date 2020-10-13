@@ -168,8 +168,13 @@
              "invalid end index"
              end
              bstring)
+     (assume (>= end start) "invalid indices" start end)
      (unfold (lambda (i) (= i end))
-             (lambda (i) (bytevector-u8-ref bstring i))
+             (lambda (i)
+               (let ((b (bytevector-u8-ref bstring i)))
+                 (if (and (>= b #x20) (< b #x7f))
+                     (integer->char b)
+                     b)))
              (lambda (i) (+ i 1))
              start))))
 

@@ -185,7 +185,10 @@ are silently ignored.
 <p><code>(make-bytestring-generator</code>&nbsp;<var>arg</var> …<code>)</code></p>
 <p>Returns a generator that when invoked will return consecutive bytes
 of the bytevector that <code>bytestring</code> would create when applied
-to <var>args</var>, but without creating any bytevectors.</p>
+to <var>args</var>, but without creating any bytevectors.
+The <var>args</var> are validated before any bytes are generated;
+if they are ill-formed, an error satisfying
+<code>bytestring-error?</code> is raised.</p>
 <h3>Selection</h3>
 
 <p><code>(bytestring-pad</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code><br>

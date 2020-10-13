@@ -113,8 +113,8 @@
 (define (%bytestring->SNB bstring)
   (call-with-port (open-output-string)
                   (lambda (port)
-		    (write-textual-bytestring bstring port)
-		    (get-output-string port))))
+                    (write-textual-bytestring bstring port)
+                    (get-output-string port))))
 
 
 (define test-bstring (bytestring "lorem"))

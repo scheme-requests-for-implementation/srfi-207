@@ -146,25 +146,24 @@
 
 ;; Lazily generate the bytestring constructed from objs.
 (define (make-bytestring-generator . objs)
-  (lambda ()
-    (let lp ()
-      (if (null? objs)
-          (eof-object)
-          (let ((x (car objs)))
-            (cond ((and (char? x) (char<=? x #\delete))
-                   (set! objs (cdr objs))
-                   (char->integer x))
-                  ((and (exact-natural? x) (< x 256))
-                   (set! objs (cdr objs))
-                   x)
-                  ((bytevector? x)
-                   (set! objs (append! (bytevector->u8-list x) (cdr objs)))
-                   (lp))
-                  ((and (string? x) (string-ascii? x))
-                   (set! objs (append! (string->list x) (cdr objs)))
-                   (lp))
-                  (else
-                   (bytestring-error "invalid bytestring segment" x))))))))
+  (list->generator (flatten-bytestring-segments objs)))
+
+;; Convert and flatten chars and strings, and flatten bytevectors
+;; to yield a flat list of bytes.
+(define (flatten-bytestring-segments objs)
+  (fold-right
+   (lambda (x res)
+     (cond ((and (exact-natural? x) (< x 256)) (cons x res))
+           ((and (char? x) (char<=? x #\delete))
+            (cons (char->integer x) res))
+           ((bytevector? x)
+            (append (bytevector->u8-list x) res))
+           ((and (string? x) (string-ascii? x))
+            (append (map char->integer (string->list x)) res))
+           (else
+            (bytestring-error "invalid bytestring segment" x))))
+   '()
+   objs))
 
 ;;;; Selection
 

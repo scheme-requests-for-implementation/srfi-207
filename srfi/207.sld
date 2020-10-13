@@ -82,6 +82,19 @@
           u8vec))))
     (else (import (only (srfi 160 u8) u8vector-for-each u8vector-unfold))))
 
+  (cond-expand
+    ((library (srfi 158))
+     (import (only (srfi 158) list->generator)))
+    (else
+     (begin
+      (define (list->generator xs)
+        (lambda ()
+          (if (null? xs)
+              (eof-object)
+              (let ((x (car xs)))
+                (set! xs (cdr xs))
+                x)))))))
+
   (export bytestring list->bytestring bytestring->hex-string bytestring->list
           list->bytestring!
           hex-string->bytestring bytestring->base64 base64->bytestring

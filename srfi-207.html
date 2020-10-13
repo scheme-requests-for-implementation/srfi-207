@@ -180,11 +180,7 @@ are silently ignored.
 <p>Generate a sequence of bytes from <var>list</var> and write them into <var>bytevector</var> starting at index <var>at</var>. If the elements of the list are not suitable arguments for <code>bytestring</code>, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 
 <p><code>(bytestring-&gt;list</code>&nbsp;<var>bytevector</var> [ <var>start</var> [ <var>end</var> ] ]<code>)</code></p>
-<p>Convert all or part of a bytevector into a list of the same length containing
-characters for elements in the range 32 to 126 and exact integers
-for all other elements.
-bytevector will be byte for byte the same as <var>bytevector</var>,
-but the exact contents of the list are not specified by this SRFI.</p>
+<p>Convert all or part of a bytevector into a list containing suitable arguments for <code>bytestring</code>. If <code>list-&gt;bytestring</code> is applied to the list, the resulting bytevector will be byte for byte the same as <var>bytevector</var>, but the exact contents of the list are not specified by this SRFI.</p>
 
 <p><code>(make-bytestring-generator</code>&nbsp;<var>arg</var> …<code>)</code></p>
 <p>Returns a generator that when invoked will return consecutive bytes

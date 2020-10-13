@@ -28,13 +28,15 @@
   (or (and (char? obj) (char<=? obj #\delete))
       (and (exact-natural? obj) (< obj 256))))
 
-(define (string-ascii? str)
-  (and (string-every (lambda (c) (char<=? c #\delete)) str) #t))
+(define (string-ascii? obj)
+  (and (string? obj)
+       (string-every (lambda (c) (char<=? c #\delete)) obj)
+       #t))
 
 (define (valid-bytestring-segment? obj)
   (or (bytevector? obj)
       (u8-or-ascii-char? obj)
-      (and (string? obj) (string-ascii? obj))))
+      (string-ascii? obj)))
 
 (define (%bytestring-null? bstring)
   (zero? (bytevector-length bstring)))
@@ -67,7 +69,7 @@
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
          ((and (char? obj) (char<=? obj #\delete)) write-char-binary)
          ((bytevector? obj) write-bytevector)
-         ((and (string? obj) (string-ascii? obj)) write-string-binary)
+         ((string-ascii? obj) write-string-binary)
          (else
           (bytestring-error "invalid bytestring element" obj)))
    obj
@@ -192,7 +194,7 @@
             (cons (char->integer x) res))
            ((bytevector? x)
             (append (bytevector->u8-list x) res))
-           ((and (string? x) (string-ascii? x))
+           ((string-ascii? x)
             (append (map char->integer (string->list x)) res))
            (else
             (bytestring-error "invalid bytestring segment" x))))

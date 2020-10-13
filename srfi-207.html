@@ -246,11 +246,19 @@ If the characters read are not in the external format,
 an error satisfying <code>bytestring-error?</code> is raised.</p>
 
 <p><code>(write-textual-bytestring</code>&nbsp;<var>bytevector</var> [ <var>port</var> ]<code>)</code></p>
-<p>Write <var>bytevector</var> in the external format described in this SRFI. to <var>port</var>.
+<p>Write <var>bytevector</var> in the external format described in this SRFI to <var>port</var>.
+Bytes representing non-graphical ASCII characters are unencoded:
+all other bytes are encoded with a single letter if possible,
+otherwise with a <code>\x</code> escape.
 If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.</p>
 
 <p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
-<p>Outputs each <var>arg</var> to the binary output port <var>port</var> using the same interpretations as <code>bytestring</code>, but without creating any bytevectors.</p>
+<p>Outputs each <var>arg</var> to the binary output port <var>port</var>
+using the same interpretations as <code>bytestring</code>,
+but without creating any bytevectors.
+The <var>args</var> are validated before any bytes are written to
+<var>port</var>; if they are ill-formed, an error satisfying
+<code>bytestring-error?</code> is raised.</p>
 
 <h3>Exception</h3>
 

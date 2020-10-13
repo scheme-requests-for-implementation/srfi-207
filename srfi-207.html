@@ -270,7 +270,11 @@ The <var>args</var> are validated before any bytes are written to
 <h3>Exception</h3>
 
 <p><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
-<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by <code>bytestring</code>, <code>list-&gt;bytestring</code>, <code>bytestring-join</code>, <code>bytestring-split</code> or <code>write-binary-bytestring</code> in the circumstances described above.</p>
+<p>Returns <code>#t</code> if <var>obj</var> is an object signaled
+by <code>bytestring</code>, <code>list-&gt;bytestring</code>,
+<code>bytestring-join</code>, <code>bytestring-split</code>,
+<code>write-binary-bytestring</code>, or <code>make-bytestring-generator</code>
+in the circumstances described above.</p>
 
 <h2 id="implementation">Implementation</h2>
 

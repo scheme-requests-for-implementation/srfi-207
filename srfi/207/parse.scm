@@ -32,15 +32,19 @@
     ((#\t) 9)
     ((#\n) 10)
     ((#\r) 13)
+    ((#\") 34)
+    ((#\\) 92)
+    ((#\|) 124)
     ((#\x) (parse-hex))
-    ((#\space #\tab)
-     (skip-horizontal-whitespace)
-     (skip-line-break)
-     #f)                              ; skip
     ((#\newline)
      (skip-horizontal-whitespace)
      #f)                              ; skip
-    (else (bytestring-error "invalid escaped character" c))))
+    (else
+     (cond ((char-whitespace? c)
+            (skip-horizontal-whitespace)
+            (skip-line-break)
+            #f)
+           (else (bytestring-error "invalid escaped character" c))))))
 
 (define (parse-hex)
   (let* ((hex1 (read-char))
@@ -64,10 +68,10 @@
   (skip-horizontal-whitespace))
 
 (define (skip-horizontal-whitespace)
-  (let lp ()
-    (when (memv (peek-char) '(#\space #\tab))
+  (let lp ((c (peek-char)))
+    (when (and (char-whitespace? c) (not (char=? c #\newline)))
       (read-char)
-      (lp))))
+      (lp (peek-char)))))
 
 (define read-textual-bytestring
   (case-lambda

@@ -22,7 +22,7 @@
 ;;;; Utility
 
 (define (exact-natural? x)
-  (and (integer? x) (exact? x) (not (negative? x))))
+  (and (exact-integer? x) (not (negative? x))))
 
 (define (u8-or-ascii-char? obj)
   (or (and (char? obj) (char<=? obj #\delete))
@@ -60,13 +60,23 @@
 
 (define (%write-bytestring-segment obj port)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
-         ((and (char? obj) (char<? obj #\delete)) write-char)
+         ((and (char? obj) (char<=? obj #\delete)) write-char-binary)
          ((bytevector? obj) write-bytevector)
-         ((and (string? obj) (string-ascii? obj)) write-string)
+         ((and (string? obj) (string-ascii? obj)) write-string-binary)
          (else
           (bytestring-error "invalid bytestring element" obj)))
    obj
    port))
+
+;; If your Scheme allows binary ports to function as textual ports,
+;; get rid of this dance.
+(define (write-char-binary c port)
+  (write-u8 (char->integer c) port))
+
+(define (write-string-binary s port)
+  (string-for-each (lambda (c)
+                     (write-char-binary c port))
+                   s))
 
 (define (bytestring . args)
   (if (null? args) (bytevector) (list->bytestring args)))
@@ -133,6 +143,27 @@
      (assume (string? base64-string))
      (assume (string? digits))
      (decode-base64-string base64-string digits))))
+
+;; Lazily generate the bytestring constructed from objs.
+(define (make-bytestring-generator . objs)
+  (list->generator (flatten-bytestring-segments objs)))
+
+;; Convert and flatten chars and strings, and flatten bytevectors
+;; to yield a flat list of bytes.
+(define (flatten-bytestring-segments objs)
+  (fold-right
+   (lambda (x res)
+     (cond ((and (exact-natural? x) (< x 256)) (cons x res))
+           ((and (char? x) (char<=? x #\delete))
+            (cons (char->integer x) res))
+           ((bytevector? x)
+            (append (bytevector->u8-list x) res))
+           ((and (string? x) (string-ascii? x))
+            (append (map char->integer (string->list x)) res))
+           (else
+            (bytestring-error "invalid bytestring segment" x))))
+   '()
+   objs))
 
 ;;;; Selection
 
@@ -219,33 +250,6 @@
               i
               (lp (+ i 1)))))))
 
-;; A portable implementation can't rely on inlining, but it can
-;; rely on macros.  `byte' had better be an identifier!
-(define-syntax u8-fold-case
-  (syntax-rules ()
-    ((_ byte)
-     (if (and (<= 65 byte) (< byte 91))
-         (+ 32 byte)
-         byte))))
-
-(define (u8-ci=? byte1 byte2)
-  (= (u8-fold-case byte1) (u8-fold-case byte2)))
-
-(define (u8-ci<? byte1 byte2)
-  (< (u8-fold-case byte1) (u8-fold-case byte2)))
-
-(define (%bytestring-prefix-length-ci bstring1 bstring2)
-  (let ((end (min (bytevector-length bstring1)
-                  (bytevector-length bstring2))))
-    (if (eqv? bstring1 bstring2)  ; fast path
-        end
-        (let lp ((i 0))
-          (if (or (>= i end)
-                  (not (u8-ci=? (bytevector-u8-ref bstring1 i)
-                                (bytevector-u8-ref bstring2 i))))
-              i
-              (lp (+ i 1)))))))
-
 ;;; Primitive bytevector comparison functions.
 
 (define (%bytestring-compare bstring1 bstring2 res< res= res>)
@@ -260,32 +264,6 @@
                      (bytevector-u8-ref bstring2 match))
                   res<
                   res>))))))
-
-(define (%bytestring-compare-ci bstring1 bstring2 res< res= res>)
-  (let ((len1 (bytevector-length bstring1))
-        (len2 (bytevector-length bstring2)))
-    (let ((match (%bytestring-prefix-length-ci bstring1 bstring2)))
-      (if (= match len1)
-          (if (= match len2) res= res<)
-          (if (= match len2)
-              res>
-              (if (u8-ci<? (bytevector-u8-ref bstring1 match)
-                           (bytevector-u8-ref bstring2 match))
-                  res<
-                  res>))))))
-
-(cond-expand
-  ((library (scheme bytevector))
-   (define (bytestring=? bstring1 bstring2)
-     (bytevector=? bstring1 bstring2)))
-  (else
-   (define (bytestring=? bstring1 bstring2)
-     (assume (bytevector? bstring1))
-     (assume (bytevector? bstring2))
-     (or (eqv? bstring1 bstring2)
-         (and (= (bytevector-length bstring1)
-                 (bytevector-length bstring2))
-              (%bytestring-compare bstring1 bstring2 #f #t #f))))))
 
 (define (bytestring<? bstring1 bstring2)
   (assume (bytevector? bstring1))
@@ -310,38 +288,6 @@
   (assume (bytevector? bstring2))
   (or (eqv? bstring1 bstring2)
       (%bytestring-compare bstring1 bstring2 #f #t #t)))
-
-(define (bytestring-ci=? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (or (eqv? bstring1 bstring2)
-      (and (= (bytevector-length bstring1)
-              (bytevector-length bstring2))
-           (%bytestring-compare-ci bstring1 bstring2 #f #t #f))))
-
-(define (bytestring-ci<? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (and (not (eqv? bstring1 bstring2))
-       (%bytestring-compare-ci bstring1 bstring2 #t #f #f)))
-
-(define (bytestring-ci>? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (and (not (eqv? bstring1 bstring2))
-       (%bytestring-compare-ci bstring1 bstring2 #f #f #t)))
-
-(define (bytestring-ci<=? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (or (eqv? bstring1 bstring2)
-      (%bytestring-compare-ci bstring1 bstring2 #t #t #f)))
-
-(define (bytestring-ci>=? bstring1 bstring2)
-  (assume (bytevector? bstring1))
-  (assume (bytevector? bstring2))
-  (or (eqv? bstring1 bstring2)
-      (%bytestring-compare-ci bstring1 bstring2 #f #t #t)))
 
 ;;;; Searching
 
@@ -423,12 +369,11 @@
      (assume (or (pair? bstrings) (null? bstrings)))
      (assume (bytevector? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (bytestring-error "bytestring-join: invalid grammar" grammar))
+       (bytestring-error "invalid grammar" grammar))
      (if (pair? bstrings)
          (%bytestring-join-nonempty bstrings delimiter grammar)
          (if (eqv? grammar 'strict-infix)
-             (bytestring-error
-              "bytestring-join: empty list with strict-infix grammar")
+             (bytestring-error "empty list with strict-infix grammar")
              (bytevector))))))
 
 (define (%find-right bstring byte end)
@@ -465,7 +410,7 @@
      (assume (bytevector? bstring))
      (assume (u8-or-ascii-char? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (bytestring-error "bytestring-split: invalid grammar" grammar))
+       (bytestring-error "invalid grammar" grammar))
      (if (%bytestring-null? bstring)
          '()
          (%bytestring-split/trim-outliers
@@ -476,25 +421,30 @@
 ;;;; I/O
 
 (define backslash-codepoints
-  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)))
+  '((7 . #\a) (8 . #\b) (9 . #\t) (10 . #\n) (13 . #\r)
+    (34 . #\") (92 . #\\) (124 . #\|)))
 
 (define write-textual-bytestring
   (case-lambda
    ((bstring)
     (write-textual-bytestring bstring (current-output-port)))
    ((bstring port)
-    (write-string "#u8\"")
-    (u8vector-for-each
-     (lambda (b)
-       (cond ((and (< b 14) (assv b backslash-codepoints)) =>
-              (lambda (p)
-                (write-char #\\ port)
-                (write-char (cdr p) port)))
-             ((and (>= b #x20) (<= b #x7e))
-              (write-char (integer->char b) port))
-             (else (bytestring-error "invalid byte" b))))
-     bstring)
-    (write-char #\"))))
+    (parameterize ((current-output-port port))
+      (write-string "#u8\"")
+      (u8vector-for-each
+       (lambda (b)
+         (cond ((assv b backslash-codepoints) =>
+                (lambda (p)
+                  (write-char #\\)
+                  (write-char (cdr p))))
+               ((and (>= b #x20) (<= b #x7e))
+                (write-char (integer->char b)))
+               (else
+                (write-string "\\x")
+                (write-string (number->string b 16))
+                (write-char #\;))))
+       bstring)
+      (write-char #\")))))
 
 (define (write-binary-bytestring port . args)
   (assume (binary-port? port))

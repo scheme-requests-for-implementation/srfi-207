@@ -73,9 +73,6 @@
 
 ;; Loop through src, writing decoded base64 data to port in chunks
 ;; of up to three bytes.
-;;
-;; TODO: Use a single bitvector instead of the b1, b2, b3 bytes, to
-;; eliminate the clumsy 6-bits-in-a-byte representation.
 (define (decode-base64-to-port src port table)
   (let ((len (string-length src)))
     (let lp ((i 0) (b1 outside-char) (b2 outside-char) (b3 outside-char))

@@ -369,12 +369,11 @@
      (assume (or (pair? bstrings) (null? bstrings)))
      (assume (bytevector? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (bytestring-error "bytestring-join: invalid grammar" grammar))
+       (bytestring-error "invalid grammar" grammar))
      (if (pair? bstrings)
          (%bytestring-join-nonempty bstrings delimiter grammar)
          (if (eqv? grammar 'strict-infix)
-             (bytestring-error
-              "bytestring-join: empty list with strict-infix grammar")
+             (bytestring-error "empty list with strict-infix grammar")
              (bytevector))))))
 
 (define (%find-right bstring byte end)
@@ -411,7 +410,7 @@
      (assume (bytevector? bstring))
      (assume (u8-or-ascii-char? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
-       (bytestring-error "bytestring-split: invalid grammar" grammar))
+       (bytestring-error "invalid grammar" grammar))
      (if (%bytestring-null? bstring)
          '()
          (%bytestring-split/trim-outliers

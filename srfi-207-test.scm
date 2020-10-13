@@ -176,8 +176,11 @@
           (base64->bytestring "bG9@frob"))             => 'bytestring-error)
 
   (check (bytestring->list #u8()) => '())
-  (check (bytestring->list test-bstring) => '(#x6c #x6f #x72 #x65 #x6d))
   (check (list->bytestring (bytestring->list test-bstring)) => test-bstring)
+  (check (list->bytestring (bytestring->list test-bstring 2))
+   => (bytestring "rem"))
+  (check (list->bytestring (bytestring->list test-bstring 1 3))
+   => (bytestring "or"))
 
   (let ((bvec (make-bytevector 5)))
     (check (begin

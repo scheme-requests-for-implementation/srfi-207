@@ -21,8 +21,18 @@
 
 (import (scheme base))
 (import (srfi 207))
-(import (only (srfi 1) list-tabulate every)
-        (only (srfi 158) generator->list))
+(import (only (srfi 1) list-tabulate every))
+
+(cond-expand
+  ((library (srfi 158))
+   (import (only (srfi 158) generator->list)))
+  (else
+   (begin
+    (define (generator->list gen)
+      (let rec ((x (gen)))
+        (if (eof-object? x)
+            '()
+            (cons x (rec (gen)))))))))
 
 (cond-expand
   ((library (srfi 78))
@@ -88,12 +98,12 @@
                       (else #f))
       expr))))
 
-(define-syntax with-output-to-bytevector
-  (syntax-rules ()
-    ((_ thunk)
-     (parameterize ((current-output-port (open-output-bytevector)))
-       (thunk)
-       (get-output-bytevector (current-output-port))))))
+;; Testing shorthand for write-binary-bytestring.
+(define (%bytestring/IO . args)
+  (call-with-port (open-output-bytevector)
+                  (lambda (port)
+                    (apply write-binary-bytestring port args)
+                    (get-output-bytevector port))))
 
 ;; Testing shorthands for SNB I/O.  Coverage library fans, eat your
 ;; hearts out.
@@ -178,6 +188,10 @@
     (check (begin (list->bytestring! bvec 2 '("lo" #\r #x65 #u8(#x6d)))
                   bvec)
      => (bytestring "  lorem  ")))
+  (check (catch-bytestring-error (list->bytestring '("λ")))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (list->bytestring '(#x100)))
+   => 'bytestring-error)
 
   (let ((s (list-tabulate (bytevector-length test-bstring)
                           (lambda (i)
@@ -185,6 +199,10 @@
     (check (let ((g (make-bytestring-generator "lo" #\r #x65 #u8(#x6d))))
              (generator->list g))
      => s))
+  (check (catch-bytestring-error (make-bytestring-generator "λ" #\m #\u))
+   => 'bytestring-error)
+  (check (catch-bytestring-error (make-bytestring-generator 89 90 300))
+   => 'bytestring-error)
 )
 
 (define (check-selection)
@@ -321,19 +339,14 @@
 (define (check-io)
   (print-header "Running I/O tests...")
 
-  (check
-   (with-output-to-bytevector
-    (lambda ()
-      (write-binary-bytestring (current-output-port) "lo" #\r #x65 #u8(#x6d))))
-   => test-bstring)
-  (check
-   (catch-bytestring-error
-    (with-output-to-bytevector
-     (lambda () (write-binary-bytestring (current-output-port) #x100))))
-   => 'bytestring-error)
+  (check (%bytestring/IO "lo" #\r #x65 #u8(#x6d)) => test-bstring)
+  (check (%bytestring/IO) => #u8())
+  (check (catch-bytestring-error (%bytestring/IO #x100)) => 'bytestring-error)
+  (check (catch-bytestring-error (%bytestring/IO "λ")) => 'bytestring-error)
 
   ;;; read-textual-bytestring
 
+  (check (parse-SNB "#u8\"\"") => #u8())
   (check (parse-SNB "#u8\"lorem\"") => test-bstring)
   (check (parse-SNB "#u8\"\\xde;\\xad;\\xf0;\\x0d;\"")
    => (bytevector #xde #xad #xf0 #x0d))
@@ -364,6 +377,7 @@
 
   ;;; write-textual-bytestring
 
+  (check (%bytestring->SNB #u8()) => "#u8\"\"")
   (check (%bytestring->SNB test-bstring) => "#u8\"lorem\"")
   (check (%bytestring->SNB (bytevector #xde #xad #xbe #xef))
    => "#u8\"\\xde;\\xad;\\xbe;\\xef;\"")

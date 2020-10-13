@@ -113,7 +113,11 @@ bytestrings and bytevectors are exactly the same type.</p>
 
 <p>Note: The <code>\|</code> sequence is provided so that
 string parsing, symbol parsing, and string-notated bytevector parsing
-can all use the same sequences.</p>
+can all use the same sequences.
+However, we give a complete definition of the valid lexical syntax
+in this SRFI rather than inheriting the native syntax of strings,
+so that it is clear that <code>#u8"&iota;"</code> and
+<code>#u8"\xE000;"</code> are invalid.</p>
 <p>When the Scheme reader encounters a string-notated bytevector, it produces a datum as if that bytevector had been written out in full. That is, <code>#u8"A"</code> is exactly equivalent to <code>#u8(65)</code>.
 
 <p>A Scheme implementation which supports string-notated bytevectors may not by default use this notation when any of the <code>write</code> family of procedures is called upon a bytevector or upon another datum containing a bytevector. A future SRFI is expected to add a configurable version of the <code>write</code> procedure which may enable the use of this notation in this context.
@@ -182,7 +186,10 @@ are silently ignored.
 <p><code>(make-bytestring-generator</code>&nbsp;<var>arg</var> …<code>)</code></p>
 <p>Returns a generator that when invoked will return consecutive bytes
 of the bytevector that <code>bytestring</code> would create when applied
-to <var>args</var>, but without creating any bytevectors.</p>
+to <var>args</var>, but without creating any bytevectors.
+The <var>args</var> are validated before any bytes are generated;
+if they are ill-formed, an error satisfying
+<code>bytestring-error?</code> is raised.</p>
 <h3>Selection</h3>
 
 <p><code>(bytestring-pad</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code><br>

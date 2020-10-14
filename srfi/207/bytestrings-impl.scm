@@ -224,7 +224,9 @@
   (assume (procedure? pred))
   (let ((new-start (bytestring-index bstring (negate pred))))
     (if new-start
-        (bytevector-copy bstring new-start)
+        (if (zero? new-start)
+            bstring
+            (bytevector-copy bstring new-start))
         (bytevector))))
 
 (define (bytestring-trim-right bstring pred)
@@ -232,7 +234,10 @@
   (assume (procedure? pred))
   (cond ((bytestring-index-right bstring (negate pred)) =>
          (lambda (end-1)
-           (bytevector-copy bstring 0 (+ 1 end-1))))
+           (let ((end (+ end-1 1)))
+             (if (= end (bytevector-length bstring))
+                 bstring
+                 (bytevector-copy bstring 0 (+ 1 end-1))))))
         (else (bytevector))))
 
 (define (bytestring-trim-both bstring pred)
@@ -240,10 +245,10 @@
   (assume (procedure? pred))
   (cond ((bytestring-index bstring (negate pred)) =>
          (lambda (start)
-           (bytevector-copy
-            bstring
-            start
-            (+ 1 (bytestring-index-right bstring (negate pred))))))
+           (let ((end (+ (bytestring-index-right bstring (negate pred)) 1)))
+             (if (and (zero? start) (= end (bytevector-length bstring)))
+                 bstring
+                 (bytevector-copy bstring start end)))))
         (else (bytevector))))
 
 ;;;; Replacement
@@ -255,18 +260,30 @@
     ((bstring1 bstring2 start1 end1 start2 end2)
      (assume (bytevector? bstring1))
      (assume (bytevector? bstring2))
-     (assume (exact-natural? start1))
-     (assume (exact-natural? end1))
-     (assume (exact-natural? start2))
-     (assume (exact-natural? end2))
-     (let* ((b1-len (bytevector-length bstring1))
-            (sub-len (- end2 start2))
-            (new-len (+ sub-len (- b1-len (- end1 start1))))
-            (bs-new (make-bytevector new-len)))
-       (bytevector-copy! bs-new 0 bstring1 0 start1)
-       (bytevector-copy! bs-new start1 bstring2 start2 end2)
-       (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
-       bs-new))))
+     (assume (and (exact-natural? start1) (>= start1 0) (<= start1 end1))
+             "invalid start index"
+             start1)
+     (assume (and (exact-natural? end1)
+                  (<= end1 (bytevector-length bstring1)))
+             "invalid end index"
+             bstring1)
+     (assume (and (exact-natural? start2) (>= start2 0) (<= start2 end2))
+             "invalid start index"
+             start2)
+     (assume (and (exact-natural? end2)
+                  (<= end2 (bytevector-length bstring2)))
+             "invalid end index"
+             bstring2)
+     (if (= start1 end1)
+         bstring1
+         (let* ((b1-len (bytevector-length bstring1))
+                (sub-len (- end2 start2))
+                (new-len (+ sub-len (- b1-len (- end1 start1))))
+                (bs-new (make-bytevector new-len)))
+           (bytevector-copy! bs-new 0 bstring1 0 start1)
+           (bytevector-copy! bs-new start1 bstring2 start2 end2)
+           (bytevector-copy! bs-new (+ start1 sub-len) bstring1 end1 b1-len)
+           bs-new)))))
 
 ;;;; Comparison
 

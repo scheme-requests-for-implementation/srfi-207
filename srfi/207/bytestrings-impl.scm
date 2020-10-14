@@ -112,14 +112,14 @@
                (string-append "0" res))))
         (else (bytestring-error "not an integer" n))))
 
-(define (bytestring->hex-string bv)
+(define (bytevector->hex-string bv)
   (assume (bytevector? bv))
   (string-concatenate
    (list-tabulate (bytevector-length bv)
                   (lambda (i)
                     (integer->hex-string (bytevector-u8-ref bv i))))))
 
-(define (hex-string->bytestring hex-str)
+(define (hex-string->bytevector hex-str)
   (assume (string? hex-str))
   (let ((len (string-length hex-str)))
     (unless (even? len)
@@ -135,17 +135,17 @@
      (truncate-quotient len 2)
      0)))
 
-(define bytestring->base64
+(define bytevector->base64
   (case-lambda
-    ((bvec) (bytestring->base64 bvec "+/"))
+    ((bvec) (bytevector->base64 bvec "+/"))
     ((bvec digits)
      (assume (bytevector? bvec))
      (assume (string? digits))
      (utf8->string (base64-encode-bytevector bvec digits)))))
 
-(define base64->bytestring
+(define base64->bytevector
   (case-lambda
-    ((base64-string) (base64->bytestring base64-string "+/"))
+    ((base64-string) (base64->bytevector base64-string "+/"))
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))

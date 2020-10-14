@@ -274,8 +274,8 @@
                   (<= end2 (bytevector-length bstring2)))
              "invalid end index"
              bstring2)
-     (if (= start1 end1)
-         bstring1
+     (if (and (= start1 end1) (= start2 end2))
+         bstring1    ; replace no bits with no bits
          (let* ((b1-len (bytevector-length bstring1))
                 (sub-len (- end2 start2))
                 (new-len (+ sub-len (- b1-len (- end1 start1))))

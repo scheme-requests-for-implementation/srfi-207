@@ -256,10 +256,11 @@
                              (bytevector-length test-bstring))
    => test-bstring)
 
-  (let ((bv1 (bytestring "food"))
-        (bv2 (bytestring "od fo")))
-    (check (bytestring-replace bv1 bv2 2 2)
-     => (bytestring "food food")))
+  (let ((bv1 (bytestring "food")) (bv2 (bytestring "od fo")))
+    (check (bytestring-replace bv1 bv2 2 2 0 5) => (bytestring "food food")))
+  (let ((bv1 (bytestring "food food")))
+    (check (bytestring-replace bv1 (bytevector) 2 7 0 0)
+     => (bytestring "food")))
 )
 
 (define (check-comparison)

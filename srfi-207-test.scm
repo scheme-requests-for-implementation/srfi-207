@@ -113,8 +113,8 @@
 (define (%bytestring->SNB bstring)
   (call-with-port (open-output-string)
                   (lambda (port)
-		    (write-textual-bytestring bstring port)
-		    (get-output-string port))))
+                    (write-textual-bytestring bstring port)
+                    (get-output-string port))))
 
 
 (define test-bstring (bytestring "lorem"))
@@ -176,8 +176,13 @@
           (base64->bytestring "bG9@frob"))             => 'bytestring-error)
 
   (check (bytestring->list #u8()) => '())
-  (check (bytestring->list test-bstring) => '(#x6c #x6f #x72 #x65 #x6d))
+  (check (bytestring->list (bytestring 70 82 0 66)) => '(#\F #\R 0 #\B))
+  (check (bytestring->list (bytestring "\a\t\t\n" 200)) => '(7 9 9 10 200))
   (check (list->bytestring (bytestring->list test-bstring)) => test-bstring)
+  (check (list->bytestring (bytestring->list test-bstring 2))
+   => (bytestring "rem"))
+  (check (list->bytestring (bytestring->list test-bstring 1 3))
+   => (bytestring "or"))
 
   (let ((bvec (make-bytevector 5)))
     (check (begin
@@ -251,16 +256,12 @@
                              (bytevector-length test-bstring))
    => test-bstring)
 
-  ;; Replacing from the end of the `to' bytestring is equivalent
-  ;; to appending the two bytestrings.
-  (let ((test-bstring2 (bytestring " ipsum")))
-    (check (bytestring-replace test-bstring
-                               test-bstring2
-                               (bytevector-length test-bstring)
-                               (bytevector-length test-bstring)
-                               0
-                               (bytevector-length test-bstring2))
-     => (bytevector-append test-bstring test-bstring2))))
+  (let ((bv1 (bytestring "food")) (bv2 (bytestring "od fo")))
+    (check (bytestring-replace bv1 bv2 2 2 0 5) => (bytestring "food food")))
+  (let ((bv1 (bytestring "food food")))
+    (check (bytestring-replace bv1 (bytevector) 2 7 0 0)
+     => (bytestring "food")))
+)
 
 (define (check-comparison)
   (define short-bstring (bytestring "lore"))

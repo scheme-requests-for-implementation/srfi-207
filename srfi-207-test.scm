@@ -324,6 +324,15 @@
   (check (bytestring-join test-segments #u8(0) 'prefix) => #u8(0 1 0 2 0 3))
   (check (bytestring-join test-segments #u8(0) 'suffix) => #u8(1 0 2 0 3 0))
   (check (bytestring-join '() #u8(0))                   => #u8())
+  (check (bytestring-join test-segments #\space)        => #u8(1 32 2 32 3))
+  (check (bytestring-join test-segments 0)              => #u8(1 0 2 0 3))
+  (check (bytestring-join test-segments "AB")
+   => #u8(1 65 66 2 65 66 3))
+  (check (bytestring-join test-segments #u8(7 8))       => #u8(1 7 8 2 7 8 3))
+  (check (catch-bytestring-error
+          (bytestring-join test-segments 300))          => 'bytestring-error)
+  (check (catch-bytestring-error
+          (bytestring-join test-segments "λ"))          => 'bytestring-error)
   (check (catch-bytestring-error
            (bytestring-join '() #u8(0) 'strict-infix))  => 'bytestring-error)
   (check (catch-bytestring-error

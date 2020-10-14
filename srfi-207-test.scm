@@ -256,16 +256,11 @@
                              (bytevector-length test-bstring))
    => test-bstring)
 
-  ;; Replacing from the end of the `to' bytestring is equivalent
-  ;; to appending the two bytestrings.
-  (let ((test-bstring2 (bytestring " ipsum")))
-    (check (bytestring-replace test-bstring
-                               test-bstring2
-                               (bytevector-length test-bstring)
-                               (bytevector-length test-bstring)
-                               0
-                               (bytevector-length test-bstring2))
-     => (bytevector-append test-bstring test-bstring2))))
+  (let ((bv1 (bytestring "food"))
+        (bv2 (bytestring "od fo")))
+    (check (bytestring-replace bv1 bv2 2 2)
+     => (bytestring "food food")))
+)
 
 (define (check-comparison)
   (define short-bstring (bytestring "lore"))

@@ -151,10 +151,6 @@
      (assume (string? digits))
      (decode-base64-string base64-string digits))))
 
-;; The SRFI gives us some latitude with this one; as long as the
-;; resulting list can be passed to list->bytestring, we can return
-;; whatever breakdown of bstring we like.  This returns a list of
-;; the bytes of bstring, since that seems least surprising.
 (define bytestring->list
   (case-lambda
     ((bstring) (bytestring->list bstring 0 (bytevector-length bstring)))

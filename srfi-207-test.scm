@@ -20,6 +20,7 @@
 ;;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (import (scheme base))
+(import (scheme write))
 (import (srfi 207))
 (import (only (srfi 1) list-tabulate every))
 

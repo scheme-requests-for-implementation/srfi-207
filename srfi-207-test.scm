@@ -107,8 +107,15 @@
 
 ;; Testing shorthands for SNB I/O.  Coverage library fans, eat your
 ;; hearts out.
+(define (parse-SNB/prefix s)
+  (call-with-port (open-input-string s)
+                  (lambda (p)
+                    (read-textual-bytestring #t p))))
+
 (define (parse-SNB s)
-  (call-with-port (open-input-string s) read-textual-bytestring))
+  (call-with-port (open-input-string s)
+                  (lambda (p)
+                    (read-textual-bytestring #f p))))
 
 (define (%bytestring->SNB bstring)
   (call-with-port (open-output-string)
@@ -356,33 +363,34 @@
 
   ;;; read-textual-bytestring
 
-  (check (parse-SNB "#u8\"\"") => #u8())
-  (check (parse-SNB "#u8\"lorem\"") => test-bstring)
-  (check (parse-SNB "#u8\"\\xde;\\xad;\\xf0;\\x0d;\"")
+  (check (parse-SNB/prefix "#u8\"\"") => #u8())
+  (check (parse-SNB/prefix "#u8\"lorem\"") => test-bstring)
+  (check (parse-SNB/prefix "#u8\"\\xde;\\xad;\\xf0;\\x0d;\"")
    => (bytevector #xde #xad #xf0 #x0d))
-  (check (parse-SNB "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\\\|\"")
+  (check (parse-SNB/prefix "#u8\"\\\"\\\\\\a\\b\\t\\n\\r\\\|\"")
    => (bytestring #\" #\\ #\alarm #\backspace #\tab #\newline #\return #\|))
-  (check (parse-SNB "#u8\"lor\\\n\te\\   \r\n\tm\"")
+  (check (parse-SNB/prefix "#u8\"lor\\\n\te\\   \r\n\tm\"")
    => test-bstring)
+  (check (parse-SNB "\"lorem\"") => test-bstring)
 
   ;; Invalid SNB detection.
-  (check (catch-bytestring-error (parse-SNB "#u\"lorem\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u\"lorem\""))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8lorem\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8lorem\""))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"lorem"))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"lorem"))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"lorem"))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"lorem"))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"l\\orem\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"l\\orem\""))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"l\\    orem\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"l\\    orem\""))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"l\\x6frem\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"l\\x6frem\""))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"l\\x6z;rem\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"l\\x6z;rem\""))
    => 'bytestring-error)
-  (check (catch-bytestring-error (parse-SNB "#u8\"α equivalence\""))
+  (check (catch-bytestring-error (parse-SNB/prefix "#u8\"α equivalence\""))
    => 'bytestring-error)
 
   ;;; write-textual-bytestring
@@ -414,7 +422,7 @@
            #u8(177 185 177 233 18 14 178 106 110 109 222 147 111 157 216 208))))
     (check
      (every (lambda (bvec)
-              (equal? bvec (parse-SNB (%bytestring->SNB bvec))))
+              (equal? bvec (parse-SNB/prefix (%bytestring->SNB bvec))))
             test-bstrings)
     => #t))
 )

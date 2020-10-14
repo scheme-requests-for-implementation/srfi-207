@@ -24,6 +24,8 @@
   <li>Draft #1 published: 2020-08-15</li>
   <li>Draft #2 published: 2020-08-17</li>
   <li>Draft #3 published: 2020-09-09</li>
+  <li>Draft #4 published: 2020-10-05</li>
+  <li>Draft #5 published: 2020-10-12</li>
 </ul>
 
 <h2 id="abstract">Abstract</h2>
@@ -274,7 +276,7 @@ an error satisfying <code>bytestring-error?</code> is raised.</p>
 Bytes representing non-graphical ASCII characters are unencoded:
 all other bytes are encoded with a single letter if possible,
 otherwise with a <code>\x</code> escape.
-If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.</p>
+If <var>port</var> is omitted, it defaults to the value of <code>(current-output-port)</code>.</p>
 
 <p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
 <p>Outputs each <var>arg</var> to the binary output port <var>port</var>
@@ -287,11 +289,19 @@ The <var>args</var> are validated before any bytes are written to
 <h3>Exception</h3>
 
 <p><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
-<p>Returns <code>#t</code> if <var>obj</var> is an object signaled
-by <code>bytestring</code>, <code>list-&gt;bytestring</code>,
-<code>bytestring-join</code>, <code>bytestring-split</code>,
-<code>write-binary-bytestring</code>, or <code>make-bytestring-generator</code>
-in the circumstances described above.</p>
+<p>Returns <code>#t</code> if <var>obj</var> is an object signaled by any of the
+following procedures, in the circumstances described above:</p>
+<ul>
+  <li><code>bytestring</code></li>
+  <li><code>hex-string-&gt;bytestring</code></li>
+  <li><code>base64-&gt;bytestring</code></li>
+  <li><code>make-bytestring</code></li>
+  <li><code>make-bytestring!</code></li>
+  <li><code>bytestring-join</code></li>
+  <li><code>read-textual-bytestring</code></li>
+  <li><code>write-binary-bytestring</code></li>
+  <li><code>make-bytestring-generator</code></li>
+</ul>
 
 <h2 id="implementation">Implementation</h2>
 
@@ -302,7 +312,7 @@ but not the notation, in the repository of this SRFI.
 
 <p>Daphne Preston-Kendal devised the string notation for bytevectors; John Cowan, the procedure library; Wolfgang Corcoran-Mathe, the sample implementation of the procedures.
 
-<p>The notation is inspired by the notation used in Python since version 2.6 for <code>bytes</code> objects, which are fundamentally similar in purpose to Scheme bytevectors, especially in R7RS. In addition, many of the procedures are closely analogous to those of <a href="http://srfi-152/srfi-152.html">SRFI 152</a>.
+<p>The notation is inspired by the notation used in Python since version 2.6 for <code>bytes</code> objects, which are fundamentally similar in purpose to Scheme bytevectors, especially in R7RS. In addition, many of the procedures are closely analogous to those of <a href="https://srfi.schemers.org/srfi-152/srfi-152.html">SRFI 152</a>.
 
 <p>Thanks is also due to the participants in the SRFI mailing list. In particular: Lassi Kortela corrected an embarrassing technical error; Marc Nieper-Wißkirchen explained why the <code>write</code> procedure ought not to be allowed to use this notation by default.
 

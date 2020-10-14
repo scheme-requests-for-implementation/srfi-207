@@ -1,4 +1,4 @@
-;;;; Reduced and modified base64 library from chibi-scheme.
+;;;; Reduced and heavily modified base64 library from chibi-scheme.
 ;;;
 ;;; Copyright (c) 2009-2018 Alex Shinn
 ;;; All rights reserved.
@@ -30,17 +30,20 @@
 (define outside-char 99) ; luft-balloons
 (define pad-char 101)    ; dalmations
 
+(define (outside-char? x) (eqv? x outside-char))
+(define (pad-char? x) (eqv? x pad-char))
+
 (define (make-base64-decode-table digits)
   (let ((extra-1 (char->integer (string-ref digits 0)))
         (extra-2 (char->integer (string-ref digits 1))))
     (vector-unfold
      (lambda (i)
-       (cond ((and (>= i 48) (< i 58))  (+ i 4))   ; numbers
-             ((and (>= i 65) (< i 91))  (- i 65))  ; upper-case
-             ((and (>= i 97) (< i 123)) (- i 71))  ; lower-case
+       (cond ((and (>= i 48) (< i 58)) (+ i 4))   ; numbers
+             ((and (>= i 65) (< i 91)) (- i 65))  ; upper case letters
+             ((and (>= i 97) (< i 123)) (- i 71)) ; lower case letters
              ((= i extra-1) 62)
              ((= i extra-2) 63)
-             ((= i #x3d) pad-char)                 ; '='
+             ((= i 61) pad-char)                  ; '='
              (else outside-char)))
      #x100)))
 
@@ -60,99 +63,58 @@
 
 ;;;; Decoding
 
-(define (base64-decode-bytevector src digits)
-  (let* ((len (bytevector-length src))
-         (dst-len (* 3 (arithmetic-shift (+ 3 len) -2)))
-         (dst (make-bytevector dst-len)))
-    (base64-decode-bytevector!
-     src
-     0
-     len
-     dst
-     (make-base64-decode-table digits)
-     (lambda (src-offset res-len b1 b2 b3)
-       (let ((res-len (base64-decode-finish dst res-len b1 b2 b3)))
-         (if (= res-len dst-len)
-             dst
-             (bytevector-copy dst 0 res-len)))))))
+(define (decode-base64-string src digits)
+  (let ((table (make-base64-decode-table digits)))
+    (call-with-port
+     (open-output-bytevector)
+     (lambda (out)
+       (decode-base64-to-port src out table)
+       (get-output-bytevector out)))))
 
-;; This is a little funky.
-;;
-;; We want to skip over "outside" characters (e.g. newlines inside
-;; base64-encoded data, as would be passed in mail clients and most
-;; large base64 data).  This would normally mean two nested loops -
-;; one for overall processing the input, and one for looping until
-;; we get to a valid character.  However, many Scheme compilers are
-;; really bad about optimizing nested loops of primitives, so we
-;; flatten this into a single loop, using conditionals to determine
-;; which character is currently being read.
-(define (base64-decode-bytevector! src start end dst table kont)
-  (let lp ((i start)
-           (j 0)
-           (b1 outside-char)
-           (b2 outside-char)
-           (b3 outside-char))
-    (if (>= i end)
-        (kont i j b1 b2 b3)
-        (let ((c (base64-decode-u8 table (bytevector-u8-ref src i))))
-          (cond
-           ((eqv? c pad-char)
-            (kont i j b1 b2 b3))
-           ((eqv? c outside-char)
-            (lp (+ i 1) j b1 b2 b3))
-           ((eqv? b1 outside-char)
-            (lp (+ i 1) j c b2 b3))
-           ((eqv? b2 outside-char)
-            (lp (+ i 1) j b1 c b3))
-           ((eqv? b3 outside-char)
-            (lp (+ i 1) j b1 b2 c))
-           (else
-            (bytevector-u8-set!
-             dst
-             j
-             (bitwise-ior (arithmetic-shift b1 2)
-                          (bit-field b2 4 6)))
-            (bytevector-u8-set!
-             dst
-             (+ j 1)
-             (bitwise-ior
-              (arithmetic-shift (bit-field b2 0 4) 4)
-              (bit-field b3 2 6)))
-            (bytevector-u8-set!
-             dst
-             (+ j 2)
-             (bitwise-ior
-              (arithmetic-shift (bit-field b3 0 2) 6)
-              c))
-            (lp (+ i 1) (+ j 3)
-                outside-char outside-char outside-char)))))))
+;; Loop through src, writing decoded base64 data to port in chunks
+;; of up to three bytes.
+(define (decode-base64-to-port src port table)
+  (let ((len (string-length src)))
+    (let lp ((i 0) (b1 outside-char) (b2 outside-char) (b3 outside-char))
+      (if (= i len)
+          (decode-base64-trailing port b1 b2 b3)
+          (let* ((c (string-ref src i))
+                 (b (base64-decode-u8 table (char->integer c))))
+            (cond ((pad-char? b) (decode-base64-trailing port b1 b2 b3))
+                  ((char-whitespace? c) (lp (+ i 1) b1 b2 b3))
+                  ((outside-char? b)
+                   (bytestring-error "invalid character in base64 string"
+                                     c
+                                     src))
+                  ((outside-char? b1) (lp (+ i 1) b b2 b3))
+                  ((outside-char? b2) (lp (+ i 1) b1 b b3))
+                  ((outside-char? b3) (lp (+ i 1) b1 b2 b))
+                  (else
+                   (write-u8 (bitwise-ior (arithmetic-shift b1 2)
+                                          (bit-field b2 4 6))
+                             port)
+                   (write-u8 (bitwise-ior
+                              (arithmetic-shift (bit-field b2 0 4) 4)
+                              (bit-field b3 2 6))
+                             port)
+                   (write-u8 (bitwise-ior
+                              (arithmetic-shift (bit-field b3 0 2) 6)
+                              b)
+                             port)
+                   (lp (+ i 1) outside-char outside-char outside-char))))))))
 
-;; If requested, account for any "partial" results (i.e. trailing 2 or
-;; 3 chars) by writing them into the destination (additional 1 or 2
-;; bytes) and returning the adjusted offset for how much data we've
-;; written.
-(define (base64-decode-finish dst j b1 b2 b3)
-  (cond
-   ((eqv? b1 outside-char)
-    j)
-   ((eqv? b2 outside-char)
-    (bytevector-u8-set! dst j (arithmetic-shift b1 2))
-    (+ j 1))
-   (else
-    (bytevector-u8-set! dst
-                        j
-                        (bitwise-ior (arithmetic-shift b1 2)
-                                     (bit-field b2 4 6)))
-    (cond
-     ((eqv? b3 outside-char)
-      (+ j 1))
-     (else
-      (bytevector-u8-set! dst
-                          (+ j 1)
-                          (bitwise-ior
-                           (arithmetic-shift (bit-field b2 0 4) 4)
-                           (bit-field b3 2 6)))
-      (+ j 2))))))
+;; Flush any trailing bits accumulated in the decode loop to the
+;; bytevector port `out', then return the finalized bytestring.
+(define (decode-base64-trailing out b1 b2 b3)
+  (cond ((outside-char? b1) #t)
+        ((outside-char? b2) (write-u8 (arithmetic-shift b1 2) out))
+        (else
+         (write-u8 (bitwise-ior (arithmetic-shift b1 2) (bit-field b2 4 6))
+                   out)
+         (unless (outside-char? b3)
+           (write-u8 (bitwise-ior (arithmetic-shift (bit-field b2 0 4) 4)
+                                  (bit-field b3 2 6))
+                     out)))))
 
 ;;;; Encoding
 

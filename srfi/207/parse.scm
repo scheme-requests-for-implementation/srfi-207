@@ -1,8 +1,10 @@
 ;;; Simple parser for string-notated bytevectors.
 
 (define (parse)
+  (consume-prefix)
   (let lp ((c (read-char)))
-    (cond ((eof-object? c) (if #f #f))
+    (cond ((eof-object? c) (bytestring-error "unexpected EOF"))
+          ((char=? c #\") (if #f #f))  ; terminating quote
           ((char=? c #\\)
            (let ((c* (read-char)))
              (cond ((eof-object? c*)
@@ -17,6 +19,12 @@
            (lp (read-char)))
           (else (bytestring-error "invalid character" c)))))
 
+(define (consume-prefix)
+  (let ((s (read-string 4)))
+    (cond ((eof-object? s) (bytestring-error "unexpected EOF"))
+          ((string=? s "#u8\"") #t)
+          (else (bytestring-error "invalid bytestring prefix" s)))))
+
 (define (escape c)
   (case c
     ((#\a) 7)
@@ -24,15 +32,19 @@
     ((#\t) 9)
     ((#\n) 10)
     ((#\r) 13)
+    ((#\") 34)
+    ((#\\) 92)
+    ((#\|) 124)
     ((#\x) (parse-hex))
-    ((#\space #\tab)
-     (skip-horizontal-whitespace)
-     (skip-line-break)
-     #f)                              ; skip
     ((#\newline)
      (skip-horizontal-whitespace)
      #f)                              ; skip
-    (else (bytestring-error "invalid escaped character" c))))
+    (else
+     (cond ((char-whitespace? c)
+            (skip-horizontal-whitespace)
+            (skip-line-break)
+            #f)
+           (else (bytestring-error "invalid escaped character" c))))))
 
 (define (parse-hex)
   (let* ((hex1 (read-char))
@@ -56,13 +68,19 @@
   (skip-horizontal-whitespace))
 
 (define (skip-horizontal-whitespace)
-  (let lp ()
-    (when (memv (peek-char) '(#\space #\tab))
+  (let lp ((c (peek-char)))
+    (when (and (char-whitespace? c) (not (char=? c #\newline)))
       (read-char)
-      (lp))))
+      (lp (peek-char)))))
 
-(define (string->bytevector s)
-  (parameterize ((current-input-port (open-input-string s))
-                 (current-output-port (open-output-bytevector)))
-    (parse)
-    (get-output-bytevector (current-output-port))))
+(define read-textual-bytestring
+  (case-lambda
+   (() (read-textual-bytestring (current-input-port)))
+   ((in)
+    (call-with-port
+     (open-output-bytevector)
+     (lambda (out)
+       (parameterize ((current-input-port in)
+                      (current-output-port out))
+         (parse)
+         (get-output-bytevector out)))))))

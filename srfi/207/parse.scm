@@ -1,7 +1,8 @@
 ;;; Simple parser for string-notated bytevectors.
 
-(define (parse)
-  (consume-prefix)
+(define (parse prefix)
+  (when prefix (consume-prefix))
+  (consume-quote)
   (let lp ((c (read-char)))
     (cond ((eof-object? c) (bytestring-error "unexpected EOF"))
           ((char=? c #\") (if #f #f))  ; terminating quote
@@ -19,10 +20,17 @@
            (lp (read-char)))
           (else (bytestring-error "invalid character" c)))))
 
+(define (consume-quote)
+  (let ((c (read-char)))
+    (cond ((eof-object? c) (bytestring-error "unexpected EOF"))
+          ((char=? c #\") #t)
+          (else
+           (bytestring-error "invalid character (expected #\\\")" c)))))
+
 (define (consume-prefix)
-  (let ((s (read-string 4)))
+  (let ((s (read-string 3)))
     (cond ((eof-object? s) (bytestring-error "unexpected EOF"))
-          ((string=? s "#u8\"") #t)
+          ((string=? s "#u8") #t)
           (else (bytestring-error "invalid bytestring prefix" s)))))
 
 (define (escape c)
@@ -75,12 +83,13 @@
 
 (define read-textual-bytestring
   (case-lambda
-   (() (read-textual-bytestring (current-input-port)))
-   ((in)
+   ((prefix) (read-textual-bytestring prefix (current-input-port)))
+   ((prefix in)
+    (assume (boolean? prefix))
     (call-with-port
      (open-output-bytevector)
      (lambda (out)
        (parameterize ((current-input-port in)
                       (current-output-port out))
-         (parse)
+         (parse prefix)
          (get-output-bytevector out)))))))

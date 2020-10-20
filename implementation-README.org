@@ -8,16 +8,16 @@ This is an implementation of
 This library should be portable to any R7RS-small implementation with
 the following libraries:
 
-* [SRFI 1/(scheme list)](https://srfi.schemers.org/srfi-1)
-* [SRFI 151/(scheme bitwise)](https://srfi.schemers.org/srfi-151)
-* One of Scheme's string libraries: SRFIs 152, 130, or 13
+- [SRFI 1/(scheme list)](https://srfi.schemers.org/srfi-1)
+- [SRFI 151/(scheme bitwise)](https://srfi.schemers.org/srfi-151)
+- One of Scheme's string libraries: SRFIs 152, 130, or 13
 
 Optional dependencies:
 
-* [(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2)
-* [SRFI 133](https://srfi.schemers.org/srfi-133)
-* [SRFI 145](https://srfi.schemers.org/srfi-145)
-* [SRFI 158](https://srfi.schemers.org/srfi-158)
+- [(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2)
+- [SRFI 133](https://srfi.schemers.org/srfi-133)
+- [SRFI 145](https://srfi.schemers.org/srfi-145)
+- [SRFI 158](https://srfi.schemers.org/srfi-158)
 
 # Extensions
 
@@ -38,15 +38,15 @@ Returns a list of the irritants encapsulated by *error-object*.
 The bytevector(s) returned by the following procedures are guaranteed
 to be newly-allocated.
 
-* bytestring-pad
-* bytestring-pad-right
-* bytestring-trim
-* bytestring-trim-right
-* bytestring-trim-both
-* bytestring-replace
-* bytestring-break
-* bytestring-span
-* bytestring-split
+- bytestring-pad
+- bytestring-pad-right
+- bytestring-trim
+- bytestring-trim-right
+- bytestring-trim-both
+- bytestring-replace
+- bytestring-break
+- bytestring-span
+- bytestring-split
 
 # Acknowledgements
 

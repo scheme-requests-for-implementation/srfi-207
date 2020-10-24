@@ -51,7 +51,7 @@
 
 ;;;; Constructors
 
-(define (list->bytestring lis)
+(define (make-bytestring lis)
   (assume (or (pair? lis) (null? lis)))
   (call-with-port
    (open-output-bytevector)
@@ -59,11 +59,11 @@
      (for-each (lambda (seg) (%write-bytestring-segment seg out)) lis)
      (get-output-bytevector out))))
 
-(define (list->bytestring! bvec at lis)
+(define (make-bytestring! bvec at lis)
   (assume (bytevector? bvec))
   (assume (and (exact-natural? at)
                (< at (bytevector-length bvec))))
-  (bytevector-copy! bvec at (list->bytestring lis)))
+  (bytevector-copy! bvec at (make-bytestring lis)))
 
 (define (%write-bytestring-segment obj port)
   ((cond ((and (exact-natural? obj) (< obj 256)) write-u8)
@@ -86,7 +86,7 @@
                    s))
 
 (define (bytestring . args)
-  (if (null? args) (bytevector) (list->bytestring args)))
+  (if (null? args) (bytevector) (make-bytestring args)))
 
 ;;;; Conversion
 
@@ -112,14 +112,14 @@
                (string-append "0" res))))
         (else (bytestring-error "not an integer" n))))
 
-(define (bytestring->hex-string bv)
+(define (bytevector->hex-string bv)
   (assume (bytevector? bv))
   (string-concatenate
    (list-tabulate (bytevector-length bv)
                   (lambda (i)
                     (integer->hex-string (bytevector-u8-ref bv i))))))
 
-(define (hex-string->bytestring hex-str)
+(define (hex-string->bytevector hex-str)
   (assume (string? hex-str))
   (let ((len (string-length hex-str)))
     (unless (even? len)
@@ -135,17 +135,17 @@
      (truncate-quotient len 2)
      0)))
 
-(define bytestring->base64
+(define bytevector->base64
   (case-lambda
-    ((bvec) (bytestring->base64 bvec "+/"))
+    ((bvec) (bytevector->base64 bvec "+/"))
     ((bvec digits)
      (assume (bytevector? bvec))
      (assume (string? digits))
      (utf8->string (base64-encode-bytevector bvec digits)))))
 
-(define base64->bytestring
+(define base64->bytevector
   (case-lambda
-    ((base64-string) (base64->bytestring base64-string "+/"))
+    ((base64-string) (base64->bytevector base64-string "+/"))
     ((base64-string digits)
      (assume (string? base64-string))
      (assume (string? digits))
@@ -416,14 +416,14 @@
     ((bstrings delimiter) (bytestring-join bstrings delimiter 'infix))
     ((bstrings delimiter grammar)
      (assume (or (pair? bstrings) (null? bstrings)))
-     (assume (bytevector? delimiter))
      (unless (memv grammar '(infix strict-infix prefix suffix))
        (bytestring-error "invalid grammar" grammar))
-     (if (pair? bstrings)
-         (%bytestring-join-nonempty bstrings delimiter grammar)
-         (if (eqv? grammar 'strict-infix)
-             (bytestring-error "empty list with strict-infix grammar")
-             (bytevector))))))
+     (let ((delim-bstring (bytestring delimiter)))
+       (if (pair? bstrings)
+           (%bytestring-join-nonempty bstrings delim-bstring grammar)
+           (if (eqv? grammar 'strict-infix)
+               (bytestring-error "empty list with strict-infix grammar")
+               (bytevector)))))))
 
 (define (%find-right bstring byte end)
   (bytestring-index-right bstring (lambda (b) (= b byte)) 0 end))

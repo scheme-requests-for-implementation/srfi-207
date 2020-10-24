@@ -26,6 +26,10 @@
   <li>Draft #3 published: 2020-09-09</li>
   <li>Draft #4 published: 2020-10-05</li>
   <li>Draft #5 published: 2020-10-12</li>
+  <li>Draft #6 published: 2020-10-15</li>
+  <li>John Cowan's <a href="https://github.com/johnwcowan/srfi-207">personal
+       Git repo for this SRFI</a> for reference while the SRFI is in
+       <em>draft</em> status (<a href="https://htmlpreview.github.io/?https://github.com/johnwcowan/srfi-207/blob/master/srfi-207.html">preview</a>)</li> 
 </ul>
 
 <h2 id="abstract">Abstract</h2>
@@ -160,7 +164,7 @@ so that it is clear that <code>#u8"&iota;"</code> and
 <p>Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 
 <p><code>(make-bytestring</code>&nbsp;<var>list</var><code>)</code></p>
-If the elements of <var>list</var> are suitable arguments for
+<p>If the elements of <var>list</var> are suitable arguments for
 <code>bytestring</code>, return the bytevector that would be the
 result of applying <code>bytestring</code> to <var>list</var>.
 Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>

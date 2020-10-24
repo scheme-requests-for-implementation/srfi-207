@@ -91,9 +91,9 @@
                 (set! xs (cdr xs))
                 x)))))))
 
-  (export bytestring list->bytestring bytestring->hex-string bytestring->list
-          list->bytestring!
-          hex-string->bytestring bytestring->base64 base64->bytestring
+  (export bytestring bytevector->hex-string bytestring->list
+          make-bytestring make-bytestring!
+          hex-string->bytevector bytevector->base64 base64->bytevector
           make-bytestring-generator
           bytestring-pad bytestring-pad-right bytestring-trim
           bytestring-trim-right bytestring-trim-both bytestring-replace

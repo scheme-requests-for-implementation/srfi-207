@@ -208,7 +208,7 @@
                       (char->integer char-or-u8)
                       char-or-u8)))
     (if (<= pad-len 0)
-        bstring
+        (bytevector-copy bstring)
         (let ((padded (make-bytevector len pad-byte)))
           (bytevector-copy! padded (if right 0 pad-len) bstring)
           padded))))
@@ -224,9 +224,7 @@
   (assume (procedure? pred))
   (let ((new-start (bytestring-index bstring (negate pred))))
     (if new-start
-        (if (zero? new-start)
-            bstring
-            (bytevector-copy bstring new-start))
+        (bytevector-copy bstring new-start)
         (bytevector))))
 
 (define (bytestring-trim-right bstring pred)
@@ -234,22 +232,20 @@
   (assume (procedure? pred))
   (cond ((bytestring-index-right bstring (negate pred)) =>
          (lambda (end-1)
-           (let ((end (+ end-1 1)))
-             (if (= end (bytevector-length bstring))
-                 bstring
-                 (bytevector-copy bstring 0 (+ 1 end-1))))))
+           (bytevector-copy bstring 0 (+ 1 end-1))))
         (else (bytevector))))
 
 (define (bytestring-trim-both bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (cond ((bytestring-index bstring (negate pred)) =>
-         (lambda (start)
-           (let ((end (+ (bytestring-index-right bstring (negate pred)) 1)))
-             (if (and (zero? start) (= end (bytevector-length bstring)))
-                 bstring
-                 (bytevector-copy bstring start end)))))
-        (else (bytevector))))
+  (let ((neg-pred (negate pred)))
+    (cond ((bytestring-index bstring neg-pred) =>
+           (lambda (start)
+             (bytevector-copy bstring
+                              start
+                              (+ (bytestring-index-right bstring neg-pred)
+                                 1))))
+          (else (bytevector)))))
 
 ;;;; Replacement
 
@@ -275,7 +271,7 @@
              "invalid end index"
              bstring2)
      (if (and (= start1 end1) (= start2 end2))
-         bstring1    ; replace no bits with no bits
+         (bytevector-copy bstring1)    ; replace no bits with no bits
          (let* ((b1-len (bytevector-length bstring1))
                 (sub-len (- end2 start2))
                 (new-len (+ sub-len (- b1-len (- end1 start1))))
@@ -375,26 +371,20 @@
 (define (bytestring-break bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (let ((end (bytevector-length bstring)))
-    (let lp ((i 0))
-      (if (= i end)
-          (values bstring (bytevector))
-          (if (pred (bytevector-u8-ref bstring i))
-              (values (bytevector-copy bstring 0 i)
-                      (bytevector-copy bstring i))
-              (lp (+ i 1)))))))
+  (cond ((bytestring-index bstring pred) =>
+         (lambda (len)
+           (values (bytevector-copy bstring 0 len)
+                   (bytevector-copy bstring len))))
+        (else (values (bytevector-copy bstring) (bytevector)))))
 
 (define (bytestring-span bstring pred)
   (assume (bytevector? bstring))
   (assume (procedure? pred))
-  (let ((end (bytevector-length bstring)))
-    (let lp ((i 0))
-      (if (= i end)
-          (values bstring (bytevector))
-          (if (pred (bytevector-u8-ref bstring i))
-              (lp (+ i 1))
-              (values (bytevector-copy bstring 0 i)
-                      (bytevector-copy bstring i)))))))
+  (cond ((bytestring-index bstring (negate pred)) =>
+         (lambda (len)
+           (values (bytevector-copy bstring 0 len)
+                   (bytevector-copy bstring len))))
+        (else (values (bytevector-copy bstring) (bytevector)))))
 
 ;;;; Joining & Splitting
 

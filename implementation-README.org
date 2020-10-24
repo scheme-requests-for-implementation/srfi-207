@@ -1,15 +1,23 @@
 # Bytestrings
 
-This is an implementation of a
-[pre-SRFI specification](https://bitbucket.org/cowan/r7rs-wg1-infra/src/default/BytestringsCowan.md)
-by John Cowan which provides bytestrings for Scheme.  It should be
-portable to any R7RS-small implementation with
-[(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2),
-[SRFI 1/(scheme list)](https://srfi.schemers.org/srfi-1),
-[SRFI 151/(scheme bitwise)](https://srfi.schemers.org/srfi-151), and
-one of Scheme's string libraries (one of SRFIs 152, 130, or 13).  In
-addition, [SRFI 145](https://srfi.schemers.org/srfi-145)
-is an optional dependency.
+This is an implementation of
+[SRFI 207: String-Notated Bytevectors](https://srfi.schemers.org/srfi-207/).
+
+# Dependencies
+
+This library should be portable to any R7RS-small implementation with
+the following libraries:
+
+- [SRFI 1/(scheme list)](https://srfi.schemers.org/srfi-1)
+- [SRFI 151/(scheme bitwise)](https://srfi.schemers.org/srfi-151)
+- One of Scheme's string libraries: SRFIs 152, 130, or 13
+
+Optional dependencies:
+
+- [(scheme bytevector)](http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-3.html#node_chap_2)
+- [SRFI 133](https://srfi.schemers.org/srfi-133)
+- [SRFI 145](https://srfi.schemers.org/srfi-145)
+- [SRFI 158](https://srfi.schemers.org/srfi-158)
 
 # Extensions
 
@@ -27,18 +35,26 @@ Returns a list of the irritants encapsulated by *error-object*.
 
 # Implementation Notes
 
-`(hex-string->bytevector s)` returns false if `s` cannot be
-interepreted as a base 16 number, in the sense of `string->number`.
+The bytevector(s) returned by the following procedures are guaranteed
+to be newly-allocated.
+
+- bytestring-pad
+- bytestring-pad-right
+- bytestring-trim
+- bytestring-trim-right
+- bytestring-trim-both
+- bytestring-replace
+- bytestring-break
+- bytestring-span
+- bytestring-split
 
 # Acknowledgements
 
 The implementation of base64 encoding and
-decoding is from
+decoding is based on that found in
 Alex Shinn's [chibi-scheme](http://synthcode.com/wiki/chibi-scheme).
 This code is found in the *base64.scm* files, along
 with the chibi-scheme license.
-The hex-string conversion functions are also based on the Chibi
-implementation.
 
 The implementation of several functions is heavily
 inspired by Olin Shivers's [SRFI 13](https://srfi.schemers.org/srfi-13).
@@ -54,5 +70,4 @@ Email: wcm at sigwinch dot xyzzy minus the zy
 
 # License
 
-This is free software released under the MIT/X license.  See
-LICENSE for details.
+See the SRFI license.

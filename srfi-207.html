@@ -204,17 +204,17 @@ if they are ill-formed, an error satisfying
 
 <p><code>(bytestring-pad</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code><br>
 <code>(bytestring-pad-right</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code></p>
-<p>Returns a bytevector with the contents of <var>bytevector</var> plus sufficient additional bytes at the beginning/end containing <var>char-or-u8</var> (which can be either an ASCII character or an exact integer in the range 0-255) such that the length of the result is at least <var>len</var>.</p>
+<p>Returns a newly allocated bytevector with the contents of <var>bytevector</var> plus sufficient additional bytes at the beginning/end containing <var>char-or-u8</var> (which can be either an ASCII character or an exact integer in the range 0-255) such that the length of the result is at least <var>len</var>.</p>
 
 <p><code>(bytestring-trim</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-trim-right</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-trim-both</code>&nbsp;<var>bytevector pred</var><code>)</code></p>
-<p>Returns a bytevector with the contents of <var>bytevector</var>, except that consecutive bytes at the beginning / the end / both the beginning and the end that satisfy <var>pred</var> are not included.</p>
+<p>Returns a newly allocated bytevector with the contents of <var>bytevector</var>, except that consecutive bytes at the beginning / the end / both the beginning and the end that satisfy <var>pred</var> are not included.</p>
 
 <h3>Replacement</h3>
 
 <p><code>(bytestring-replace</code>&nbsp;<var>bytevector1 bytevector2 start1 end1 [start2 end2]</var><code>)</code></p>
-<p>Returns a bytevector with the contents of <var>bytevector1</var>, except that the bytes indexed by <var>start1</var> and <var>end1</var> are not included but are replaced by the bytes of <var>bytevector2</var> indexed by <var>start</var> and <var>end</var>.</p>
+<p>Returns a newly allocated bytevector with the contents of <var>bytevector1</var>, except that the bytes indexed by <var>start1</var> and <var>end1</var> are not included but are replaced by the bytes of <var>bytevector2</var> indexed by <var>start</var> and <var>end</var>.</p>
 
 <h3>Comparison</h3>
 
@@ -257,7 +257,7 @@ any symbol other than these four:</p>
 </ul>
 
 <p><code>(bytestring-split</code>&nbsp;<var>bytevector delimiter</var> [<var>grammar</var>]<code>)</code></p>
-<p>Divides the elements of <var>bytevector</var> and returns a list of bytevectors using the <var>delimiter</var> (an ASCII character or exact integer in the range 0-255 inclusive). Delimiter bytes are not included in the result bytevectors.</p>
+<p>Divides the elements of <var>bytevector</var> and returns a list of newly allocated bytevectors using the <var>delimiter</var> (an ASCII character or exact integer in the range 0-255 inclusive). Delimiter bytes are not included in the result bytevectors.</p>
 <p>The <var>grammar</var> argument is used to control how <var>bytevector</var> is divided. It has the same default and meaning as in <code>bytestring-join</code>, except that <code>infix</code> and <code>strict-infix</code> mean the same thing. That is, if <var>grammar</var> is <code>prefix</code> or <code>suffix</code>, then ignore any delimiter in the first or last position of <var>bytevector</var> respectively.</p>
 
 <h3>I/O</h3>

@@ -276,8 +276,7 @@ the equivalent R7RS library <code>(scheme bytevector)</code>.
 
 <p><code>(bytestring-break</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-span</code>&nbsp;<var>bytevector pred</var><code>)</code></p>
-<p>Return two values, a bytevector containing the maximal sequence of characters (searching from the beginning to the end that do not satisfy / do satisfy <var>pred</var>, and another bytevector containing the remaining characters.</p>
-<!-- FIXME: missing close paren and ambiguity in previous line. -->
+<p>Return two values, a bytevector containing the maximal sequence of characters (searching from the beginning of <var>bytevector</var> to the end) that do not satisfy / do satisfy <var>pred</var>, and another bytevector containing the remaining characters.</p>
 <pre class="example"><code>(bytestring-break #u8(#x50 #x4b 0 0 #x1 #x5) zero?)
   &rArr; #u8(#x50 #x4b)
     #u8(0 0 #x1 #x5)

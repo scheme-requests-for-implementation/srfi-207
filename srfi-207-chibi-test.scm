@@ -199,7 +199,7 @@
 
 (test-group "bytestring-replace"
   (test (bytestring "lists")
-        (bytestring-replace test-bstring (bytestring "mists") 1 5))
+        (bytestring-replace test-bstring (bytestring "mists") 1 5 1 5))
   (test (bytestring "loaded")
         (bytestring-replace test-bstring (bytestring "faded") 2 5 1 5))
   (test test-bstring

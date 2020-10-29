@@ -254,7 +254,7 @@
 (define (check-replacement)
   (print-header "Running bytestring-replace tests...")
 
-  (check (bytestring-replace test-bstring (bytestring "mists") 1 5)
+  (check (bytestring-replace test-bstring (bytestring "mists") 1 5 1 5)
    => (bytestring "lists"))
   (check (bytestring-replace test-bstring (bytestring "faded") 2 5 1 5)
    => (bytestring "loaded"))

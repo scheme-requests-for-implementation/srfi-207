@@ -259,16 +259,32 @@ the equivalent R7RS library <code>(scheme bytevector)</code>.
 <code>bytestring&lt;=?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
 <code>bytestring&gt;=?</code> <var>bytevector1 bytevector2</var><code>)</code></p>
 <p>Returns <code>#t</code> if <var>bytevector1</var> is less than / greater than / less than or equal to / greater than or equal to <var>bytevector2</var>. Comparisons are lexicographical: shorter bytevectors compare before longer ones, all elements being equal.</p>
+<pre class="example"><code>(bytestring&lt;? #u8"Heart Of Gold" #u8"Heart of Gold") &rArr; #t
+(bytestring&lt;=? #u8(#x81 #x95) #u8(#x80 #xa0)) &rArr; #f
+(bytestring&gt;? #u8(1 2 3) #u8(1 2)) &rArr; #t
+</code></pre>
 
 <h3>Searching</h3>
 
 <p><code>(bytestring-index</code>&nbsp;<var>bytevector pred</var> [<var>start</var> [<var>end</var>]]<code>)</code><br>
 <code>(bytestring-index-right</code>&nbsp;<var>bytevector pred</var> [<var>start</var> [<var>end</var>]]<code>)</code></p>
 <p>Search <var>bytevector</var> from <var>start</var> to <var>end</var> / from <var>end</var> to <var>start</var> for the first byte that satisfies <var>pred</var>, and return the index into <var>bytevector</var> containing that byte. In either direction, <var>start</var> is inclusive and <var>end</var> is exclusive. If there are no such bytes, returns <code>#f</code>.</p>
+<pre class="example"><code>(bytestring-index #u8(#x65 #x72 #x83 #x6f) (lambda (b) (&gt; b #x7f))) &rArr; 2
+(bytestring-index #u8"Beeblebrox" (lambda (b) (&gt; b #x7f))) &rArr; #f
+(bytestring-index-right #u8"Zaphod" odd?) &rArr; 4
+</code></pre>
 
 <p><code>(bytestring-break</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-span</code>&nbsp;<var>bytevector pred</var><code>)</code></p>
 <p>Return two values, a bytevector containing the maximal sequence of characters (searching from the beginning to the end that do not satisfy / do satisfy <var>pred</var>, and another bytevector containing the remaining characters.</p>
+<!-- FIXME: missing close paren and ambiguity in previous line. -->
+<pre class="example"><code>(bytestring-break #u8(#x50 #x4b 0 0 #x1 #x5) zero?)
+  &rArr; #u8(#x50 #x4b)
+    #u8(0 0 #x1 #x5)
+(bytestring-span #u8"ABCDefg" (lambda (b) (&gt; b 40) (&lt; b 91)))
+  &rArr; #u8"ABCD"
+    #u8"efg"
+</code></pre>
 
 <h3 id="joining-and-splitting">Joining and splitting</h3>
 
@@ -286,10 +302,16 @@ any symbol other than these four:</p>
   <li><code>suffix</code> means a suffix or terminator grammar: insert the delimiter after every list element.</li>
   <li><code>prefix</code> means a prefix grammar: insert the delimiter before every list element.</li>
 </ul>
+<pre class="example"><code>(bytestring-join '(#u8"Heart" #u8"of" #u8"Gold") #x20) &rArr; #u8"Heart of Gold"
+(bytestring-join '(#u8(#xef #xbb) #u8(#xbf)) 0 'prefix) &rArr; #u8(0 #xef #xbb 0 #xbf)
+(bytestring-join '() 0 'strict-infix) &rArr;</code> <em>error</em></pre>
 
 <p><code>(bytestring-split</code>&nbsp;<var>bytevector delimiter</var> [<var>grammar</var>]<code>)</code></p>
 <p>Divides the elements of <var>bytevector</var> and returns a list of newly allocated bytevectors using the <var>delimiter</var> (an ASCII character or exact integer in the range 0-255 inclusive). Delimiter bytes are not included in the result bytevectors.</p>
 <p>The <var>grammar</var> argument is used to control how <var>bytevector</var> is divided. It has the same default and meaning as in <code>bytestring-join</code>, except that <code>infix</code> and <code>strict-infix</code> mean the same thing. That is, if <var>grammar</var> is <code>prefix</code> or <code>suffix</code>, then ignore any delimiter in the first or last position of <var>bytevector</var> respectively.</p>
+<pre class="example"><code>(bytestring-split #u8"Beeblebrox" #x62) &rArr; (#u8"Bee" #u8"le" #u8"rox")
+(bytestring-split #u8(1 0 2 0) 0 'suffix) &rArr; (#u8(1) #u8(2))
+</code></pre>
 
 <h3>I/O</h3>
 
@@ -301,6 +323,11 @@ that <code>#u8</code> has already been read from <var>port</var>.
 If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.
 If the characters read are not in the external format,
 an error satisfying <code>bytestring-error?</code> is raised.</p>
+<pre class="example"><code>(call-with-port (open-input-string "#u8\"AB\\xad;\\xf0;\\x0d;CD\"")
+                (lambda (port)
+                  (read-textual-bytestring #t port)))
+  &rArr; #u8(#x41 #x42 #xad #xf0 #x0d #x43 #x44)
+</code></pre>
 
 <p><code>(write-textual-bytestring</code>&nbsp;<var>bytevector</var> [ <var>port</var> ]<code>)</code></p>
 <p>Write <var>bytevector</var> in the external format described in this SRFI to <var>port</var>.
@@ -308,6 +335,14 @@ Bytes representing non-graphical ASCII characters are unencoded:
 all other bytes are encoded with a single letter if possible,
 otherwise with a <code>\x</code> escape.
 If <var>port</var> is omitted, it defaults to the value of <code>(current-output-port)</code>.</p>
+<pre class="example"><code>(call-with-port (open-output-string)
+                (lambda (port)
+                  (write-textual-bytestring
+                   #u8(#x9 #x41 #x72 #x74 #x68 #x75 #x72 #xa)
+                   port)
+                  (get-output-string port)))
+  &rArr; "#u8\"\\tArthur\\n\""
+</code></pre>
 
 <p><code>(write-binary-bytestring</code>&nbsp;<var>port arg</var> …<code>)</code></p>
 <p>Outputs each <var>arg</var> to the binary output port <var>port</var>
@@ -316,6 +351,12 @@ but without creating any bytevectors.
 The <var>args</var> are validated before any bytes are written to
 <var>port</var>; if they are ill-formed, an error satisfying
 <code>bytestring-error?</code> is raised.</p>
+<pre class="example"><code>(call-with-port (open-output-bytevector)
+                (lambda (port)
+                  (write-binary-bytestring port #\Z #x61 #x70 "hod")
+                  (get-output-bytevector port)))
+  &rArr; #u8"Zaphod"
+</code></pre>
 
 <h3>Exception</h3>
 

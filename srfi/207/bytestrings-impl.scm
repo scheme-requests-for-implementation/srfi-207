@@ -252,7 +252,12 @@
 (define bytestring-replace
   (case-lambda
     ((bstring1 bstring2 start end)
-     (bytestring-replace bstring1 bstring2 start end start end))
+     (bytestring-replace bstring1
+                         bstring2
+                         start
+                         end
+                         0
+                         (bytevector-length bstring2)))
     ((bstring1 bstring2 start1 end1 start2 end2)
      (assume (bytevector? bstring1))
      (assume (bytevector? bstring2))

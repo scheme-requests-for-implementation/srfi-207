@@ -277,7 +277,7 @@ the equivalent R7RS library <code>(scheme bytevector)</code>.
 <pre class="example"><code>(bytestring-break #u8(#x50 #x4b 0 0 #x1 #x5) zero?)
   &rArr; #u8(#x50 #x4b)
     #u8(0 0 #x1 #x5)
-(bytestring-span #u8"ABCDefg" (lambda (b) (&gt; b 40) (&lt; b 91)))
+(bytestring-span #u8"ABCDefg" (lambda (b) (and (&gt; b 40) (&lt; b 91))))
   &rArr; #u8"ABCD"
     #u8"efg"
 </code></pre>

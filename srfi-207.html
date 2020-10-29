@@ -148,7 +148,7 @@ so that it is clear that <code>#u8"&iota;"</code> and
 <h3>Constructors</h3>
 
 <p><code>(bytestring</code>&nbsp;<var>arg</var> …<code>)</code></p>
-<p>Convert <var>args</var> into a sequence of small integers and returns them as a bytevector as follows:</p>
+<p>Converts <var>args</var> into a sequence of small integers and returns them as a bytevector as follows:</p>
 <ul>
   <li>
 	<p>If <var>arg</var> is an exact integer in the range 0-255 inclusive, it is added to the result.</p>
@@ -171,7 +171,7 @@ so that it is clear that <code>#u8"&iota;"</code> and
 
 <p><code>(make-bytestring</code>&nbsp;<var>list</var><code>)</code></p>
 <p>If the elements of <var>list</var> are suitable arguments for
-<code>bytestring</code>, return the bytevector that would be the
+<code>bytestring</code>, returns the bytevector that would be the
 result of applying <code>bytestring</code> to <var>list</var>.
 Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 
@@ -188,14 +188,14 @@ bstring &rArr; #u8"  scheme  "</code></pre>
 
 <p><code>(bytevector-&gt;hex-string</code>&nbsp;<var>bytevector</var><code>)</code><br>
 <code>(hex-string-&gt;bytevector</code>&nbsp;<var>string</var><code>)</code></p>
-<p>Convert between a bytevector and a string containing pairs of hexadecimal digits.
+<p>Converts between a bytevector and a string containing pairs of hexadecimal digits.
 If <var>string</var> is not pairs of hexadecimal digits, an error satisfying <code>bytestring-error?</code> is raised.</p>
 <pre class="example"><code>(bytevector-&gt;hex-string #u8"Ford") &rArr; "467f7264"
 (hex-string-&gt;bytevector "5a6170686f64") &rArr; #u8"Zaphod"</code></pre>
 
 <p><code>(bytevector-&gt;base64</code>&nbsp;<var>bytevector</var> [<var>digits</var>]<code>)</code><br>
 <code>(base64-&gt;bytevector</code>&nbsp;<var>string</var> [<var>digits</var>]<code>)</code></p>
-<p>Convert between a bytevector and its base-64 encoding as a string. The 64 digits are represented by the characters 0-9, A-Z, a-z, and the symbols + and /. However, there are different variants of base-64 encoding which use different representations of the 62nd and 63rd digit. If the optional argument <var>digits</var> (a two-character string) is provided, those two characters will be used as the 62nd and 63rd digit instead.
+<p>Converts between a bytevector and its base-64 encoding as a string. The 64 digits are represented by the characters 0-9, A-Z, a-z, and the symbols + and /. However, there are different variants of base-64 encoding which use different representations of the 62nd and 63rd digit. If the optional argument <var>digits</var> (a two-character string) is provided, those two characters will be used as the 62nd and 63rd digit instead.
 Details can be found in
 <a href="https://tools.ietf.org/html/rfc4648">RFC 4648</a>.
 If <var>string</var> is not in base-64 format, an error satisfying <code>bytestring-error?</code> is raised.
@@ -206,7 +206,7 @@ are silently ignored.</p>
 (base64-&gt;bytevector "+/     /+") &rArr; #u8(#xfb #xff #xfe)</code></pre>
 
 <p><code>(bytestring-&gt;list</code>&nbsp;<var>bytevector</var> [ <var>start</var> [ <var>end</var> ] ]<code>)</code></p>
-<p>Convert all or part of a bytevector
+<p>Converts all or part of a bytevector
 into a list of the same length containing
 characters for elements in the range 32 to 127
 and exact integers for all other elements.</p>
@@ -251,10 +251,10 @@ procedure <code>bytevector=?</code> from either
 the R6RS library <code>(rnrs bytevectors)</code> or
 the equivalent R7RS library <code>(scheme bytevector)</code>.
 
-<p><code>bytestring&lt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring&gt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring&lt;=?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
-<code>bytestring&gt;=?</code> <var>bytevector1 bytevector2</var><code>)</code></p>
+<p><code>(bytestring&lt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
+<code>(bytestring&gt;?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
+<code>(bytestring&lt;=?</code> <var>bytevector1 bytevector2</var><code>)</code><br>
+<code>(bytestring&gt;=?</code> <var>bytevector1 bytevector2</var><code>)</code></p>
 <p>Returns <code>#t</code> if <var>bytevector1</var> is less than / greater than / less than or equal to / greater than or equal to <var>bytevector2</var>. Comparisons are lexicographical: shorter bytevectors compare before longer ones, all elements being equal.</p>
 <pre class="example"><code>(bytestring&lt;? #u8"Heart Of Gold" #u8"Heart of Gold") &rArr; #t
 (bytestring&lt;=? #u8(#x81 #x95) #u8(#x80 #xa0)) &rArr; #f
@@ -265,7 +265,7 @@ the equivalent R7RS library <code>(scheme bytevector)</code>.
 
 <p><code>(bytestring-index</code>&nbsp;<var>bytevector pred</var> [<var>start</var> [<var>end</var>]]<code>)</code><br>
 <code>(bytestring-index-right</code>&nbsp;<var>bytevector pred</var> [<var>start</var> [<var>end</var>]]<code>)</code></p>
-<p>Search <var>bytevector</var> from <var>start</var> to <var>end</var> / from <var>end</var> to <var>start</var> for the first byte that satisfies <var>pred</var>, and return the index into <var>bytevector</var> containing that byte. In either direction, <var>start</var> is inclusive and <var>end</var> is exclusive. If there are no such bytes, returns <code>#f</code>.</p>
+<p>Searches <var>bytevector</var> from <var>start</var> to <var>end</var> / from <var>end</var> to <var>start</var> for the first byte that satisfies <var>pred</var>, and returns the index into <var>bytevector</var> containing that byte. In either direction, <var>start</var> is inclusive and <var>end</var> is exclusive. If there are no such bytes, returns <code>#f</code>.</p>
 <pre class="example"><code>(bytestring-index #u8(#x65 #x72 #x83 #x6f) (lambda (b) (&gt; b #x7f))) &rArr; 2
 (bytestring-index #u8"Beeblebrox" (lambda (b) (&gt; b #x7f))) &rArr; #f
 (bytestring-index-right #u8"Zaphod" odd?) &rArr; 4
@@ -273,7 +273,7 @@ the equivalent R7RS library <code>(scheme bytevector)</code>.
 
 <p><code>(bytestring-break</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-span</code>&nbsp;<var>bytevector pred</var><code>)</code></p>
-<p>Return two values, a bytevector containing the maximal sequence of characters (searching from the beginning of <var>bytevector</var> to the end) that do not satisfy / do satisfy <var>pred</var>, and another bytevector containing the remaining characters.</p>
+<p>Returns two values, a bytevector containing the maximal sequence of characters (searching from the beginning of <var>bytevector</var> to the end) that do not satisfy / do satisfy <var>pred</var>, and another bytevector containing the remaining characters.</p>
 <pre class="example"><code>(bytestring-break #u8(#x50 #x4b 0 0 #x1 #x5) zero?)
   &rArr; #u8(#x50 #x4b)
     #u8(0 0 #x1 #x5)
@@ -293,10 +293,10 @@ argument is a symbol that determines how the delimiter is used, and
 defaults to <code>infix</code>. It is an error for grammar to be
 any symbol other than these four:</p>
 <ul>
-  <li><code>infix</code> means an infix or separator grammar: insert the delimiter between list elements. An empty list will produce an empty bytevector.</li>
+  <li><code>infix</code> means an infix or separator grammar: inserts the delimiter between list elements. An empty list will produce an empty bytevector.</li>
   <li><code>strict-infix</code> means the same as <code>infix</code> if the list is non-empty, but will signal an error satisfying <code>bytestring-error?</code> if given an empty list.</li>
-  <li><code>suffix</code> means a suffix or terminator grammar: insert the delimiter after every list element.</li>
-  <li><code>prefix</code> means a prefix grammar: insert the delimiter before every list element.</li>
+  <li><code>suffix</code> means a suffix or terminator grammar: inserts the delimiter after every list element.</li>
+  <li><code>prefix</code> means a prefix grammar: inserts the delimiter before every list element.</li>
 </ul>
 <pre class="example"><code>(bytestring-join '(#u8"Heart" #u8"of" #u8"Gold") #x20) &rArr; #u8"Heart of Gold"
 (bytestring-join '(#u8(#xef #xbb) #u8(#xbf)) 0 'prefix) &rArr; #u8(0 #xef #xbb 0 #xbf)
@@ -312,10 +312,10 @@ any symbol other than these four:</p>
 <h3>I/O</h3>
 
 <code>(read-textual-bytestring</code>&nbsp; <var>prefix</var> [ <var>port</var> ]<code>)</code>
-<p>Read a string in the external format described in this SRFI
+<p>Reads a string in the external format described in this SRFI
 from <var>port</var> and return it as a bytevector.
 If the <var>prefix</var> argument is false, this procedure assumes
-that <code>#u8</code> has already been read from <var>port</var>.
+that "<code>#u8</code>" has already been read from <var>port</var>.
 If <var>port</var> is omitted, it defaults to the value of <code>(current-input-port)</code>.
 If the characters read are not in the external format,
 an error satisfying <code>bytestring-error?</code> is raised.</p>
@@ -326,7 +326,7 @@ an error satisfying <code>bytestring-error?</code> is raised.</p>
 </code></pre>
 
 <p><code>(write-textual-bytestring</code>&nbsp;<var>bytevector</var> [ <var>port</var> ]<code>)</code></p>
-<p>Write <var>bytevector</var> in the external format described in this SRFI to <var>port</var>.
+<p>Writes <var>bytevector</var> in the external format described in this SRFI to <var>port</var>.
 Bytes representing non-graphical ASCII characters are unencoded:
 all other bytes are encoded with a single letter if possible,
 otherwise with a <code>\x</code> escape.

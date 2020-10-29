@@ -5,6 +5,7 @@
     <title>SRFI 207: String-notated bytevectors</title>
     <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
     <link rel="stylesheet" href="https://srfi.schemers.org/srfi.css" type="text/css">
+    <style>pre.example { margin-left: 2em; }</style>
     <meta name="viewport" content="width=device-width, initial-scale=1"></head>
   <body>
     <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI logo" /></a>207: String-notated bytevectors</h1>
@@ -163,6 +164,8 @@ so that it is clear that <code>#u8"&iota;"</code> and
   </li>
 </ul>
 <p>Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
+<p>Examples:</p>
+<pre class="example"><code>(bytestring "lor" #\r #x65 #u8(#x6d)) &rArr; #u8"lorem"</code></pre>
 
 <p><code>(make-bytestring</code>&nbsp;<var>list</var><code>)</code></p>
 <p>If the elements of <var>list</var> are suitable arguments for
@@ -175,6 +178,9 @@ If the elements of <var>list</var> are suitable arguments for
 <code>bytestring</code>, write the bytes of the bytevector that would be the
 result of calling <code>make-bytevector</code>
 into <var>bytevector</var> starting at index <var>at</var>.
+<pre class="example"><code>(define bstring (make-bytevector 10 #x20))
+(make-bytestring! bstring 2 '(#\s #\c "he" #u8(#x6d #x65))
+bstring &rArr; #u8"  scheme  "</code></pre>
 
 <h3>Conversion</h3>
 
@@ -182,6 +188,9 @@ into <var>bytevector</var> starting at index <var>at</var>.
 <code>(hex-string-&gt;bytevector</code>&nbsp;<var>string</var><code>)</code></p>
 <p>Convert between a bytevector and a string containing pairs of hexadecimal digits.
 If <var>string</var> is not pairs of hexadecimal digits, an error satisfying <code>bytestring-error?</code> is raised.</p>
+<pre class="example"><code>(bytevector-&gt;hex-string #u8"Ford") &rArr; "467f7264"
+
+(hex-string-&gt;bytevector "5a6170686f64") &rArr; #u8"Zaphod"</code></pre>
 
 <p><code>(bytevector-&gt;base64</code>&nbsp;<var>bytevector</var> [<var>digits</var>]<code>)</code><br>
 <code>(base64-&gt;bytevector</code>&nbsp;<var>string</var> [<var>digits</var>]<code>)</code></p>
@@ -191,12 +200,18 @@ Details can be found in
 If <var>string</var> is not in base-64 format, an error satisfying <code>bytestring-error?</code> is raised.
 However, characters that satisfy <code>char-whitespace?</code>
 are silently ignored.
+<pre class="example"><code>(bytevector-&gt;base64 #u8(1 2 3 4 5 6)) &rArr; "AQIDBAUG"
+
+(bytevector-&gt;base64 #u8"Arthur Dent") &rArr; "QXJ0aHVyIERlbnQ="
+
+(base64-&gt;bytevector "+/     /+") &rArr; #u8(#xfb #xff #xfe)</code></pre>
 
 <p><code>(bytestring-&gt;list</code>&nbsp;<var>bytevector</var> [ <var>start</var> [ <var>end</var> ] ]<code>)</code></p>
 <p>Convert all or part of a bytevector
 into a list of the same length containing
 characters for elements in the range 32 to 127
 and exact integers for all other elements.</p>
+<pre class="example"><code>(bytestring-&gt;list #u8(#x41 #x42 1 2) 1 3) &rArr; (#\B 1)</code></pre>
 
 <p><code>(make-bytestring-generator</code>&nbsp;<var>arg</var> …<code>)</code></p>
 <p>Returns a generator that when invoked will return consecutive bytes
@@ -205,21 +220,32 @@ to <var>args</var>, but without creating any bytevectors.
 The <var>args</var> are validated before any bytes are generated;
 if they are ill-formed, an error satisfying
 <code>bytestring-error?</code> is raised.</p>
+<pre class="example"><code>(generator->list (make-bytestring-generator "lorem"))
+  &rArr; (#x6c #x6f #x72 #x65 #x6d)</code></pre>
 <h3>Selection</h3>
 
 <p><code>(bytestring-pad</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code><br>
 <code>(bytestring-pad-right</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code></p>
 <p>Returns a newly allocated bytevector with the contents of <var>bytevector</var> plus sufficient additional bytes at the beginning/end containing <var>char-or-u8</var> (which can be either an ASCII character or an exact integer in the range 0-255) such that the length of the result is at least <var>len</var>.</p>
+<pre class="example"><code>(bytestring-pad #u8"Zaphod" 10 #\_) &rArr; #u8"____Zaphod"
+
+(bytestring-pad-right #u8(#x80 #x7f) 8 0) &rArr; #u8(#x80 #x7f 0 0 0 0 0 0)</code></pre>
 
 <p><code>(bytestring-trim</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-trim-right</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
 <code>(bytestring-trim-both</code>&nbsp;<var>bytevector pred</var><code>)</code></p>
 <p>Returns a newly allocated bytevector with the contents of <var>bytevector</var>, except that consecutive bytes at the beginning / the end / both the beginning and the end that satisfy <var>pred</var> are not included.</p>
+<pre class="example"><code>(bytestring-trim #u8"   Trillian" (lambda (b) (= b #x20)))
+  &rArr; #u8"Trillian"
+
+(bytestring-trim-both #u8(0 0 #x80 #x7f 0 0 0) zero?) &rArr; #u8(#x80 #x7f)</code></pre>
 
 <h3>Replacement</h3>
 
 <p><code>(bytestring-replace</code>&nbsp;<var>bytevector1 bytevector2 start1 end1 [start2 end2]</var><code>)</code></p>
 <p>Returns a newly allocated bytevector with the contents of <var>bytevector1</var>, except that the bytes indexed by <var>start1</var> and <var>end1</var> are not included but are replaced by the bytes of <var>bytevector2</var> indexed by <var>start</var> and <var>end</var>.</p>
+<pre class="example"><code>(bytestring-replace #u8"Vogon torture" #u8"poetry" 6 13)
+  &rArr; #u8"Vogon poetry"</code></pre>
 
 <h3>Comparison</h3>
 

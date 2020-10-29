@@ -191,7 +191,6 @@ bstring &rArr; #u8"  scheme  "</code></pre>
 <p>Convert between a bytevector and a string containing pairs of hexadecimal digits.
 If <var>string</var> is not pairs of hexadecimal digits, an error satisfying <code>bytestring-error?</code> is raised.</p>
 <pre class="example"><code>(bytevector-&gt;hex-string #u8"Ford") &rArr; "467f7264"
-
 (hex-string-&gt;bytevector "5a6170686f64") &rArr; #u8"Zaphod"</code></pre>
 
 <p><code>(bytevector-&gt;base64</code>&nbsp;<var>bytevector</var> [<var>digits</var>]<code>)</code><br>
@@ -203,9 +202,7 @@ If <var>string</var> is not in base-64 format, an error satisfying <code>bytestr
 However, characters that satisfy <code>char-whitespace?</code>
 are silently ignored.</p>
 <pre class="example"><code>(bytevector-&gt;base64 #u8(1 2 3 4 5 6)) &rArr; "AQIDBAUG"
-
 (bytevector-&gt;base64 #u8"Arthur Dent") &rArr; "QXJ0aHVyIERlbnQ="
-
 (base64-&gt;bytevector "+/     /+") &rArr; #u8(#xfb #xff #xfe)</code></pre>
 
 <p><code>(bytestring-&gt;list</code>&nbsp;<var>bytevector</var> [ <var>start</var> [ <var>end</var> ] ]<code>)</code></p>
@@ -230,7 +227,6 @@ if they are ill-formed, an error satisfying
 <code>(bytestring-pad-right</code>&nbsp;<var>bytevector len char-or-u8</var><code>)</code></p>
 <p>Returns a newly allocated bytevector with the contents of <var>bytevector</var> plus sufficient additional bytes at the beginning/end containing <var>char-or-u8</var> (which can be either an ASCII character or an exact integer in the range 0-255) such that the length of the result is at least <var>len</var>.</p>
 <pre class="example"><code>(bytestring-pad #u8"Zaphod" 10 #\_) &rArr; #u8"____Zaphod"
-
 (bytestring-pad-right #u8(#x80 #x7f) 8 0) &rArr; #u8(#x80 #x7f 0 0 0 0 0 0)</code></pre>
 
 <p><code>(bytestring-trim</code>&nbsp;<var>bytevector pred</var><code>)</code><br>
@@ -239,7 +235,6 @@ if they are ill-formed, an error satisfying
 <p>Returns a newly allocated bytevector with the contents of <var>bytevector</var>, except that consecutive bytes at the beginning / the end / both the beginning and the end that satisfy <var>pred</var> are not included.</p>
 <pre class="example"><code>(bytestring-trim #u8"   Trillian" (lambda (b) (= b #x20)))
   &rArr; #u8"Trillian"
-
 (bytestring-trim-both #u8(0 0 #x80 #x7f 0 0 0) zero?) &rArr; #u8(#x80 #x7f)</code></pre>
 
 <h3>Replacement</h3>

@@ -8,7 +8,7 @@ keywords: [[https://srfi.schemers.org/?keywords=reader-syntax][Reader Syntax]]
 
 This repository hosts [[https://srfi.schemers.org/srfi-207/][SRFI 207]]: String-notated bytevectors, a [[https://srfi.schemers.org/][Scheme Request for Implementation]].
 
-This SRFI is in /draft/ status.
+This SRFI is in /final/ status.
 
 The full documentation for this SRFI can be found in the [[https://srfi.schemers.org/srfi-207/srfi-207.html][SRFI Document]].
 

@@ -174,10 +174,10 @@ result of applying <code>bytestring</code> to <var>list</var>.
 Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 
 <p><code>(make-bytestring!</code>&nbsp;<var>bytevector at list</var><code>)</code></p>
-If the elements of <var>list</var> are suitable arguments for
+<p>If the elements of <var>list</var> are suitable arguments for
 <code>bytestring</code>, write the bytes of the bytevector that would be the
 result of calling <code>make-bytevector</code>
-into <var>bytevector</var> starting at index <var>at</var>.
+into <var>bytevector</var> starting at index <var>at</var>.</p>
 <pre class="example"><code>(define bstring (make-bytevector 10 #x20))
 (make-bytestring! bstring 2 '(#\s #\c "he" #u8(#x6d #x65))
 bstring &rArr; #u8"  scheme  "</code></pre>
@@ -199,7 +199,7 @@ Details can be found in
 <a href="https://tools.ietf.org/html/rfc4648">RFC 4648</a>.
 If <var>string</var> is not in base-64 format, an error satisfying <code>bytestring-error?</code> is raised.
 However, characters that satisfy <code>char-whitespace?</code>
-are silently ignored.
+are silently ignored.</p>
 <pre class="example"><code>(bytevector-&gt;base64 #u8(1 2 3 4 5 6)) &rArr; "AQIDBAUG"
 
 (bytevector-&gt;base64 #u8"Arthur Dent") &rArr; "QXJ0aHVyIERlbnQ="

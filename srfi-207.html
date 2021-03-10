@@ -175,7 +175,7 @@ Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 <p><code>(make-bytestring!</code>&nbsp;<var>bytevector at list</var><code>)</code></p>
 <p>If the elements of <var>list</var> are suitable arguments for
 <code>bytestring</code>, writes the bytes of the bytevector that would be the
-result of calling <code>make-bytevector</code>
+result of calling <code>make-bytestring</code>
 into <var>bytevector</var> starting at index <var>at</var>.</p>
 <pre class="example"><code>(define bstring (make-bytevector 10 #x20))
 (make-bytestring! bstring 2 '(#\s #\c "he" #u8(#x6d #x65))

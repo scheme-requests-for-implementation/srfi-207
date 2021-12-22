@@ -181,7 +181,7 @@ Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 result of calling <code>make-bytestring</code>
 into <var>bytevector</var> starting at index <var>at</var>.</p>
 <pre class="example"><code>(define bstring (make-bytevector 10 #x20))
-(make-bytestring! bstring 2 '(#\s #\c "he" #u8(#x6d #x65))
+(make-bytestring! bstring 2 '(#\s #\c "he" #u8(#x6d #x65)))
 bstring &rArr; #u8"  scheme  "</code></pre>
 
 <h3>Conversion</h3>

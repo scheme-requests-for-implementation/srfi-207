@@ -31,7 +31,10 @@
   <li>Finalized: 2020-10-29</li>
   <li>Revised to fix errata:
     <ul>
-      <li>2021-03-10 (Fix description of <code>make-bytestring!</code>.)</li></ul></li>
+      <li>2021-03-10 (Fix <a href="#errata-1">description</a>
+        of <code>make-bytestring!</code>.)</li>
+      <li>2025-02-06 (Fix <a href="#errata-2">explanation</a> of how
+        to compare bytevectors for equality.)</li></ul></li>
 </ul>
 
 <h2 id="abstract">Abstract</h2>
@@ -175,7 +178,7 @@ so that it is clear that <code>#u8"&iota;"</code> and
 result of applying <code>bytestring</code> to <var>list</var>.
 Otherwise, an error satisfying <code>bytestring-error?</code> is signaled.</p>
 
-<p><code>(make-bytestring!</code>&nbsp;<var>bytevector at list</var><code>)</code></p>
+<p id="errata-1"><code>(make-bytestring!</code>&nbsp;<var>bytevector at list</var><code>)</code></p>
 <p>If the elements of <var>list</var> are suitable arguments for
 <code>bytestring</code>, writes the bytes of the bytevector that would be the
 result of calling <code>make-bytestring</code>
@@ -246,7 +249,7 @@ if they are ill-formed, an error satisfying
 
 <h3>Comparison</h3>
 
-<p>To compare bytevectors for equality, use the
+<p id="errata-2">To compare bytevectors for equality, use the
 procedure <code>bytevector=?</code> from
 the R6RS library <code>(rnrs bytevectors)</code> or
 <code>equal?</code> in R7RS.

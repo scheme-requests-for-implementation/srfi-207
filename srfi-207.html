@@ -34,7 +34,9 @@
       <li>2021-03-10 (Fix <a href="#errata-1">description</a>
         of <code>make-bytestring!</code>.)</li>
       <li>2025-02-06 (Fix <a href="#errata-2">explanation</a> of how
-        to compare bytevectors for equality.)</li></ul></li>
+        to compare bytevectors for equality.)</li>
+      <li>2025-12-08 (Fix incorrect procedure names referenced
+        in <a href="#errata-3"> the exceptions list</a>.)</li></ul></li>
 </ul>
 
 <h2 id="abstract">Abstract</h2>
@@ -359,13 +361,13 @@ The <var>args</var> are validated before any bytes are written to
 
 <h3>Exception</h3>
 
-<p><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
+<p id="errata-3"><code>(bytestring-error?</code>&nbsp;<var>obj</var><code>)</code></p>
 <p>Returns <code>#t</code> if <var>obj</var> is an object signaled by any of the
 following procedures, in the circumstances described above:</p>
 <ul>
   <li><code>bytestring</code></li>
-  <li><code>hex-string-&gt;bytestring</code></li>
-  <li><code>base64-&gt;bytestring</code></li>
+  <li><code>hex-string-&gt;bytevector</code></li>
+  <li><code>base64-&gt;bytevector</code></li>
   <li><code>make-bytestring</code></li>
   <li><code>make-bytestring!</code></li>
   <li><code>bytestring-join</code></li>

@@ -81,7 +81,7 @@ than in the form <code>#u8(114 101 99 117 114 115 105 111 110)</code>.
 This is true even when non-ASCII bytes are incorporated
 into the bytevector: the complete 8-bit PNG file header can be written as
 <code>#u8"\x89;PNG\r\n\x1A;\n"</code>
-instead of <code>#u8(0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A)</code>.</p>
+instead of <code>#u8(#x89 #x50 #x4E #x47 #x0D #x0A #x1A #x0A)</code>.</p>
 
 <p>In addition, this SRFI provides bytevectors with additional procedures that closely resemble those provided for strings. For example, bytevectors can be padded or trimmed, compared case-sensitively or case-insensitively, searched, joined, and split.
 
